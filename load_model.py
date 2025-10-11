@@ -6,7 +6,7 @@ import numpy as np
 TESSERACT_EXE = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 
-IMAGE_PATH = "assets/model/Ballot_Paper_V1.jpg"
+IMAGE_PATH = "assets/model/Presidantial_Election_V1.jpg"
 MODEL_PATH_28 = r"tf-cnn-model.h5"           # your MNIST-style 28x28 model (0-9)
 OUT_DIR = "debug_ballot"
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -55,6 +55,104 @@ def ocr_name_line(row_bgr):
     surname = m.group(1) if m else None
     return text, surname
 
+def detect_vote_boxes(img_bgr):
+    """
+    Return vote boxes (x,y,w,h), sorted by y. Much more tolerant to bottom shadows
+    and perspective. It normalizes lighting, uses a generous area filter, and
+    clusters by x to keep the right-most column.
+    """
+    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+
+    # --- illumination normalization (shadow resistant) ---
+    bg = cv2.medianBlur(gray, 51)
+    norm = cv2.divide(gray, bg, scale=255)
+
+    # --- threshold (try Sauvola if available, else adaptive) ---
+    try:
+        th = cv2.ximgproc.niBlackThreshold(norm, 255, cv2.THRESH_BINARY_INV,
+                                           41, k=0.2)  # Sauvola-like
+    except Exception:
+        th = cv2.adaptiveThreshold(norm, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   cv2.THRESH_BINARY_INV, 41, 7)
+
+    # close gaps so each box is a single blob
+    th = cv2.morphologyEx(th, cv2.MORPH_CLOSE,
+                          cv2.getStructuringElement(cv2.MORPH_RECT, (5,5)), 2)
+
+    H, W = th.shape
+    contours, _ = cv2.findContours(th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # --- generous geometric filters (old ones were too strict) ---
+    cands = []
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        ar = w / float(h + 1e-6)
+        area = w * h
+        if (0.65 <= ar <= 1.5 and                # roughly square
+            area > 0.0015 * W * H and            # was 0.005 → missed small/bottom boxes
+            w > 0.04 * W and h > 0.04 * H and    # avoid tiny noise
+            x > 0.45 * W):                        # keep right half (not only 0.60)
+            cands.append((x, y, w, h))
+
+    if not cands:
+        return []
+
+    # --- cluster by x and keep the rightmost cluster (robust to perspective) ---
+    xs = np.array([x for x,_,_,_ in cands], dtype=np.float32).reshape(-1,1)
+    # try DBSCAN; if unavailable, fall back to a simple rightmost filter
+    try:
+        from sklearn.cluster import DBSCAN
+        eps = 0.08 * W  # how far boxes can drift horizontally
+        labels = DBSCAN(eps=eps, min_samples=2).fit(xs).labels_
+        clusters = {}
+        for lab, box in zip(labels, cands):
+            clusters.setdefault(lab, []).append(box)
+        # drop noise cluster (-1) unless it's the only one
+        keys = [k for k in clusters if k != -1] or [-1]
+        # pick cluster with the largest median x (the right column)
+        best_k = max(keys, key=lambda k: np.median([b[0] for b in clusters[k]]))
+        boxes = clusters[best_k]
+    except Exception:
+        # fallback: take the N boxes with largest x (N<=10), then sort by y
+        boxes = sorted(cands, key=lambda b: b[0], reverse=True)[:10]
+
+    boxes.sort(key=lambda b: b[1])
+    return boxes
+
+
+
+def boxes_to_rows(img_bgr, boxes):
+    """
+    Convert the list of sorted boxes [(x,y,w,h), ...] to row (y1,y2) bands by
+    splitting halfway between successive box centers. This reliably covers bottom rows.
+    """
+    H, W, _ = img_bgr.shape
+    if not boxes:
+        return []
+
+    centers = [y + h//2 for (_,y,_,h) in boxes]
+    rows = []
+
+    # Top boundary: a little above the first box
+    top = max(0, centers[0] - int(0.9 * boxes[0][3]))
+    for i in range(len(centers)-1):
+        mid = (centers[i] + centers[i+1]) // 2
+        rows.append((top, mid))
+        top = mid
+    # Bottom boundary: a little below the last box
+    bottom = min(H-1, centers[-1] + int(0.9 * boxes[-1][3]))
+    rows.append((top, bottom))
+
+    # Small clamp/merge just in case
+    merged = []
+    for y1, y2 in rows:
+        if y2 - y1 < 10:
+            continue
+        if not merged or y1 > merged[-1][1] - 5:
+            merged.append([y1, y2])
+        else:
+            merged[-1][1] = max(merged[-1][1], y2)
+    return [(a,b) for a,b in merged]
 
 # Row detection
 def find_row_bands(img_bgr):
@@ -117,16 +215,21 @@ def crop_rightmost_square(row_bgr):
 # Enhance vote box
 def enhance_vote_box(box_bgr):
     gray = cv2.cvtColor(box_bgr, cv2.COLOR_BGR2GRAY)
-    gray = cv2.fastNlMeansDenoising(gray, None, 25, 7, 21)
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
-    gray = clahe.apply(gray)
-    blur = cv2.GaussianBlur(gray, (0,0), 3)
-    sharp = cv2.addWeighted(gray, 1.5, blur, -0.5, 0)
-    _, binary = cv2.threshold(sharp, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    if np.mean(binary) < 128:
-        binary = 255 - binary
-    binary = cv2.dilate(binary, cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3)), 1)
-    return binary  # white bg (255), black ink (0)
+    gray = cv2.fastNlMeansDenoising(gray, None, 15, 7, 21)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    g = clahe.apply(gray)
+
+    # Adaptive threshold → ink=255, bg=0
+    th = cv2.adaptiveThreshold(g, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                               cv2.THRESH_BINARY_INV, 21, 10)
+
+    # Light closing to reconnect broken curves
+    th = cv2.morphologyEx(th, cv2.MORPH_CLOSE,
+                          cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3)), 1)
+
+    # Return white bg (255), black ink (0) as your pipeline expects
+    return 255 - th
+
 
 
 #  Remove box borders / ruling lines
@@ -249,8 +352,14 @@ def predict_digit_from_box(model28, vote_box_bgr, row_idx, debug_prefix):
 
     probs = model28.predict(x28, verbose=0)[0]
     pred = int(np.argmax(probs))
+    conf = float(probs[pred])         # confidence of top class
     ink_ratio = float(digit_mask.mean())
-    return pred, {"ink_ratio": ink_ratio, "probs": probs}
+
+    # If confidence < 0.5, treat as NULL (no valid digit)
+    if conf < 0.4:
+        pred = None
+
+    return pred, {"ink_ratio": ink_ratio, "probs": probs, "confidence": conf}
 
 
 # Main
@@ -260,50 +369,89 @@ def main():
         print(f"[ERROR] Could not read image: {IMAGE_PATH}")
         sys.exit(1)
 
+    # # --- (optional) trim tiny bottom shadow band that often confuses row detectors ---
+    # H, W, _ = img.shape
+    # img = img[: int(0.98 * H), :]
+    # H = img.shape[0]
+
+    # --- load MNIST-style model ---
     try:
-        #loads tf-cnn-model.h5
         model28 = load_mnist28_model(MODEL_PATH_28)
         print("[INFO] Loaded MNIST 28x28 model.")
     except Exception as e:
         print(f"[ERROR] {e}")
         sys.exit(1)
 
-    rows = find_row_bands(img)
-    rows = sorted(rows, key=lambda r: r[0])#sorts row coordinates to assending order
-    print(f"[INFO] Detected {len(rows)} rows.")
+    # --- detect vote boxes and derive rows from their vertical centers ---
+    boxes = detect_vote_boxes(img)                 # -> list of (x,y,w,h), sorted by y
+    if len(boxes) >= 3:
+        rows = boxes_to_rows(img, boxes)           # -> list of (y1,y2) bands, same order
+    else:
+        # fallback to your original method if boxes were not found reliably
+        rows = find_row_bands(img)
 
+    print(f"[INFO] Vote boxes found: {len(boxes)}; rows derived: {len(rows)}")
+
+    # --- visual debug for detection ---
+    dbg = img.copy()
+    for i, (x, y, w, h) in enumerate(boxes, 1):
+        cv2.rectangle(dbg, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(dbg, f"B{i}", (x - 40, y + h // 2),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+    for i, (y1, y2) in enumerate(rows, 1):
+        cv2.rectangle(dbg, (0, y1), (img.shape[1] - 1, y2), (255, 0, 0), 2)
+        cv2.putText(dbg, f"R{i}", (10, y1 + 22),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+    cv2.imwrite(os.path.join(OUT_DIR, "rows_from_boxes_debug.png"), dbg)
+
+    # --- iterate rows (and use detected boxes when available) ---
     results = []
     for i, (y1, y2) in enumerate(rows, start=1):
         row = img[y1:y2, :]
-        vote_box = crop_rightmost_square(row)
+
+        # if we have a matching box for this row, crop it directly; else fallback
+        if i <= len(boxes):
+            x, y, w, h = boxes[i - 1]
+            vote_box = img[y:y + h, x:x + w]
+        else:
+            vote_box = crop_rightmost_square(row)
+
         cv2.imwrite(os.path.join(OUT_DIR, f"row_{i:02d}_box_raw.png"), vote_box)
 
+        # classify; your predict_digit_from_box should set pred=None if conf<0.5
         pred_digit, meta = predict_digit_from_box(
             model28, vote_box, i, debug_prefix=f"row_{i:02d}"
         )
 
+        # OCR candidate name (optional if tesseract available)
         full_line, surname = ocr_name_line(row)
 
         results.append({
             "row": i,
             "name_line": full_line,
             "surname": surname,
-            "digit": pred_digit,
+            "digit": pred_digit if pred_digit is not None else "NULL",
             "ink_ratio": round(meta.get("ink_ratio", 0.0), 4),
+            "confidence": round(meta.get("confidence", 0.0), 3),
         })
 
+    # --- report ---
     print("\n==== Results (Name ↔ Digit) ====")
     for r in results:
         name = r["name_line"] or r["surname"] or f"Row {r['row']}"
-        print(f"{name:<40} -> {r['digit']} (ink={r['ink_ratio']})")
+        conf = r.get("confidence", 0.0)
+        print(f"{name:<40} -> {r['digit']} (ink={r['ink_ratio']}, conf={conf:.2f})")
 
+    # --- save CSV ---
     csv_path = os.path.join(OUT_DIR, "ballot_results.csv")
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["row","surname","name_line","digit","ink_ratio"])
+        w.writerow(["row", "surname", "name_line", "digit", "ink_ratio", "confidence"])
         for r in results:
-            w.writerow([r["row"], r["surname"] or "", r["name_line"] or "", r["digit"], r["ink_ratio"]])
+            w.writerow([r["row"], r["surname"] or "", r["name_line"] or "",
+                        r["digit"], r["ink_ratio"], r["confidence"]])
     print(f"\n[INFO] Saved CSV: {csv_path}")
+
 
 
 if __name__ == "__main__":

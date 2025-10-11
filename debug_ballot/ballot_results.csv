@@ -1,10 +1,5 @@
-row,surname,name_line,digit,ink_ratio
-1,,TREORACHA 1 Scriobh an figidr 1 sa bhosca le hais grianghraf an figidr 2 sa bhosca le hais grianghraf an iarrth 2 Lion an pdÃ ipÃ ar ionas nach bhfeicfear do vota,1,0.0356
-2,,GALVIN â NATIONAL LEAGUE,3,0.0578
-3,,GORECKI â CUMMANN NA SAORANACH,,0.0
-4,,HIGGINS â URBAN PARTY European Radical Group,,0.0
-5,,MORAN â NATIONAL IRELAND Liberal Group,1,0.1974
-6,,MURPHY â DEMOCRATS European Democrats,4,0.0495
-7,,Oâ LEARY â URBAN PARTY European Radical Grour,2,0.058
-8,,TURNER â YOUNG IRELAND Liberal Group,,0.0
-9,,THOMPSON â NON-PARTY IKENNA THOMPSON of Dereen Ballyglass Factory,,0.0
+row,surname,name_line,digit,ink_ratio,confidence
+1,,Toghchan don Uachtarz Presidential Election,1,0.0136,0.475
+2,,INSTRUCTIONS 1 Write 1 in the box beside the candidate of your f box beside the candidate of your second choice 2 Fold the paper to conceal your vote Show the presiding officer and put it in the ballot box,NULL,0.0,0.0
+3,,GAVIN TIM CAVIN 9 of Rathfarnham Dikhlin 14,NULL,0.0,0.0
+4,,HUMPHREYS HEATHER HUMPHREYS of Dernaroy Aghabog Co M 5 ra Oc ae oe ee i,NULL,0.0,0.0
