@@ -1,5 +1,9 @@
-row,surname,name_line,digit,ink_ratio,confidence
-1,,Toghchan don Uachtarz Presidential Election,1,0.0136,0.475
-2,,INSTRUCTIONS 1 Write 1 in the box beside the candidate of your f box beside the candidate of your second choice 2 Fold the paper to conceal your vote Show the presiding officer and put it in the ballot box,NULL,0.0,0.0
-3,,GAVIN TIM CAVIN 9 of Rathfarnham Dikhlin 14,NULL,0.0,0.0
-4,,HUMPHREYS HEATHER HUMPHREYS of Dernaroy Aghabog Co M 5 ra Oc ae oe ee i,NULL,0.0,0.0
+row,candidate,digit
+1,GALVIN,NULL
+2,GORECKI,1
+3,HIGGINS,NULL
+4,MORAN,3
+5,MURPHY,NULL
+6,O'LEARY,NULL
+7,TURNER,NULL
+8,THOMPSON,2
