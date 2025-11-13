@@ -2,13 +2,19 @@
 import os, csv, sys, re
 import cv2
 import numpy as np
+import urllib.request
 
 # ---------------- CONFIG ----------------
 TESSERACT_EXE = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-IMAGE_PATH = "assets/model/Real_Ballot_Paper_V2.png"
-MODEL_PATH_28 = r"tf-cnn-model.h5"           # your MNIST-style 28x28 model (0-9)
+IMAGE_PATH = "assets/model/SampleBallots/7-Seater-Ballot-Papers-Mock-Election-images-0.jpg"
+MODEL_PATH_28 = r"tf-cnn-model.keras"           # your MNIST-style 28x28 model (0-9)
 OUT_DIR = "debug_ballot"
 os.makedirs(OUT_DIR, exist_ok=True)
+for f in os.listdir(OUT_DIR):
+    try:
+        os.remove(os.path.join(OUT_DIR, f))
+    except Exception:
+        pass
 
 # Candidate-box placement heuristics
 MIN_Y_FRAC = 0.25       # ignore boxes found above top 25% of page
@@ -20,7 +26,15 @@ PAD_FRAC = 0.08         # crop padding to remove borders (6–12% works well)
 MIN_TOP_CONF = 0.60
 MIN_MARGIN   = 0.10
 
-EXPECTED_BOXES = 8     # <— enforce exactly this many boxes
+EXPECTED_BOXES = 9
+def read_image_from_url(url):
+    with urllib.request.urlopen(url) as resp:
+        data = resp.read()
+    img_array = np.asarray(bytearray(data), dtype=np.uint8)
+    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    return img
+
+
 
 # --------------- OCR name line (optional) ---------------
 def ocr_name_line(row_bgr):
@@ -189,6 +203,44 @@ def find_row_bands(img_bgr):
             rows.append((y1, y2))
     return rows
 
+
+
+def boxes_to_tight_rows(img_bgr, boxes, up_frac=0.55, down_frac=0.65):
+    """
+    Make one tight row per detected vote box.
+    Each row extends only a fraction of the box height above/below its center,
+    clamped by the midpoints to adjacent boxes to avoid overlap.
+    """
+    H, W, _ = img_bgr.shape
+    if not boxes:
+        return []
+
+    # sort by y, compute centers
+    boxes = sorted(boxes, key=lambda b: b[1])
+    centers = [y + h/2.0 for (_, y, _, h) in boxes]
+
+    # midpoints between neighboring centers
+    mids = [(centers[i] + centers[i+1]) / 2.0 for i in range(len(centers)-1)]
+
+    rows = []
+    for i, (x, y, w, h) in enumerate(boxes):
+        c = centers[i]
+        # preferred tight band around the box
+        y1 = int(c - up_frac*h)
+        y2 = int(c + down_frac*h)
+
+        # clamp so rows don't overlap
+        if i > 0:
+            y1 = max(y1, int(mids[i-1]))
+        if i < len(boxes) - 1:
+            y2 = min(y2, int(mids[i]))
+
+        # final image bounds + minimal height guard
+        y1 = max(0, y1)
+        y2 = min(H-1, max(y1+12, y2))
+        rows.append((y1, y2))
+
+    return rows
 # --------------- Vote-box crop & enhancement ---------------
 def crop_rightmost_square(row_bgr):
     gray = cv2.cvtColor(row_bgr, cv2.COLOR_BGR2GRAY)
@@ -203,7 +255,7 @@ def crop_rightmost_square(row_bgr):
         if x > 0.60 * W and 0.8 < ar < 1.25 and area > 0.008 * W * H:
             cands.append((x, y, w, h))
     if not cands:
-        return row_bgr[:, int(0.75 * W):]
+        return row_bgr[:, int(0.65 * W):]
 
     x, y, w, h = max(cands, key=lambda b: b[0])
     pad = int(PAD_FRAC * min(w, h))
@@ -476,6 +528,7 @@ def enforce_k_boxes(boxes, img_shape, k=8):
 
 # --------------- Main ---------------
 def main():
+    #img = read_image_from_url(IMAGE_PATH)
     img = cv2.imread(IMAGE_PATH)
     if img is None:
         print(f"[ERROR] Could not read image: {IMAGE_PATH}")
@@ -493,12 +546,13 @@ def main():
     boxes = filter_boxes_layout(raw_boxes, img.shape)
 
     # enforce exactly EXPECTED_BOXES where feasible
-    if len(boxes) >= 2:  # need at least a couple to cluster sensibly
-        boxes = enforce_k_boxes(boxes, img.shape, k=EXPECTED_BOXES)
+    if len(boxes) >= 2:
+        k = max(3, min(20, len(boxes)))   # or use len(find_row_bands(img))
+        boxes = enforce_k_boxes(boxes, img.shape, k=k)
 
     # derive rows from filtered boxes, else fallback
     if len(boxes) >= 3:
-        rows = boxes_to_rows(img, boxes)
+        rows = boxes_to_tight_rows(img, boxes)
     else:
         rows = find_row_bands(img)
 
