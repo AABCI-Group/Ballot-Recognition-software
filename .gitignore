@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+runs/
+outputs/
+.data/
+*.pt
+*.onnx
+*.log
+*.json
+data/
+
+

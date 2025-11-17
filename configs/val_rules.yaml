@@ -1,0 +1,15 @@
+# score_valid: 0.60
+# score_review: 0.35
+# min_area_frac: 0.0002
+# max_area_frac: 0.15
+# min_circularity: 0.35
+# min_ellipse_edge_pct: 0.20
+# min_template_ncc: 0.35
+score_valid: 0.50      # slightly easier to be "VALID"
+score_review: 0.20     # funnel more borderline cases into REVIEW, not NO STAMP
+min_area_frac: 0.0001  # allow slightly smaller boxes
+max_area_frac: 0.30    # allow slightly larger boxes
+
+min_circularity: 0.10        # accept less round shapes
+min_ellipse_edge_pct: 0.05   # only require a bit of ellipse alignment
+min_template_ncc: 0.10 
