@@ -3,10 +3,10 @@ import os, csv, sys, re
 import cv2
 import numpy as np
 import urllib.request
-
+import glob
 # ---------------- CONFIG ----------------
 TESSERACT_EXE = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-IMAGE_PATH = "assets/model/SampleBallots/7-Seater-Ballot-Papers-Mock-Election-images-0.jpg"
+IMAGE_DIR = "assets/model/SampleBallots/"
 MODEL_PATH_28 = r"tf-cnn-model.keras"           # your MNIST-style 28x28 model (0-9)
 OUT_DIR = "debug_ballot"
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -35,6 +35,113 @@ def read_image_from_url(url):
     return img
 
 
+def kill_outer_frame(mask, frame=2):
+    """
+    Zero out a small frame along the border to kill residual box lines.
+    mask: bool or 0/1 or 0/255
+    """
+    if mask.dtype != np.uint8:
+        m = mask.astype(np.uint8)
+    else:
+        m = mask.copy()
+
+    if m.max() == 255:
+        m = (m > 0).astype(np.uint8)
+
+    h, w = m.shape
+    f = min(frame, h // 2, w // 2)
+    if f <= 0:
+        return m
+
+    m[:f, :] = 0
+    m[-f:, :] = 0
+    m[:, :f] = 0
+    m[:, -f:] = 0
+    return m
+
+
+def clean_components(mask, min_area=8):
+    """
+    Remove tiny specks after border/frame removal.
+    mask: 0/1 uint8
+    """
+    m = (mask > 0).astype(np.uint8)
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(m, connectivity=8)
+    cleaned = np.zeros_like(m)
+    for i in range(1, n):
+        area = stats[i, cv2.CC_STAT_AREA]
+        if area >= min_area:
+            cleaned[labels == i] = 1
+    return cleaned
+
+
+def get_components(mask_bool):
+    """
+    Extract component stats + masks from a boolean mask.
+    """
+    fg = mask_bool.astype(np.uint8)
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(fg, connectivity=8)
+    comps = []
+    for i in range(1, n):
+        x, y, w, h, area = stats[i]
+        if area == 0:
+            continue
+        comp_mask = (labels == i)
+        comps.append({
+            "id": i,
+            "x": x, "y": y, "w": w, "h": h,
+            "area": area,
+            "mask": comp_mask,
+        })
+    return comps
+
+
+def horizontal_overlap_ratio(c1, c2):
+    """
+    Overlap of two components along x, as a fraction of the smaller width.
+    """
+    x1a, x1b = c1["x"], c1["x"] + c1["w"]
+    x2a, x2b = c2["x"], c2["x"] + c2["w"]
+    inter = max(0, min(x1b, x2b) - max(x1a, x2a))
+    return inter / max(1.0, float(min(c1["w"], c2["w"])))
+
+
+def group_components_into_digits(comps, overlap_thresh=0.4):
+    """
+    Merge components whose x-ranges overlap substantially.
+    - For a '5' (top + bottom): large overlap -> 1 group.
+    - For '10': little overlap -> 2 groups.
+    Very simple greedy grouping is enough for this use case.
+    """
+    groups = []
+    used = set()
+
+    for i, c in enumerate(comps):
+        if i in used:
+            continue
+        group = [c]
+        used.add(i)
+        for j, d in enumerate(comps):
+            if j in used:
+                continue
+            if horizontal_overlap_ratio(c, d) >= overlap_thresh:
+                group.append(d)
+                used.add(j)
+        groups.append(group)
+    return groups
+
+
+def build_group_masks(mask_shape, groups):
+    """
+    Build one boolean mask per group of components.
+    """
+    group_masks = []
+    for group in groups:
+        gmask = np.zeros(mask_shape, dtype=bool)
+        for comp in group:
+            gmask |= comp["mask"]
+        group_masks.append(gmask)
+    return group_masks
 
 # --------------- OCR name line (optional) ---------------
 def ocr_name_line(row_bgr):
@@ -182,29 +289,6 @@ def boxes_to_rows(img_bgr, boxes):
             merged[-1][1] = max(merged[-1][1], y2)
     return [(a,b) for a,b in merged]
 
-def find_row_bands(img_bgr):
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
-                                   cv2.THRESH_BINARY_INV, 15, 8)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (80, 1))
-    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-    contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    H, W = gray.shape
-    yPositions = []
-    for c in contours:
-        x, y, w, h = cv2.boundingRect(c)
-        if w > W // 3:
-            yPositions.append(y)
-    yPositions = sorted(yPositions)
-    rows = []
-    for i in range(len(yPositions) - 1):
-        y1, y2 = yPositions[i], yPositions[i + 1]
-        if y2 - y1 > 0.04 * H:
-            rows.append((y1, y2))
-    return rows
-
-
-
 def boxes_to_tight_rows(img_bgr, boxes, up_frac=0.55, down_frac=0.65):
     """
     Make one tight row per detected vote box.
@@ -241,6 +325,31 @@ def boxes_to_tight_rows(img_bgr, boxes, up_frac=0.55, down_frac=0.65):
         rows.append((y1, y2))
 
     return rows
+
+def find_row_bands(img_bgr):
+    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                                   cv2.THRESH_BINARY_INV, 15, 8)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (80, 1))
+    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+    contours, _ = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    H, W = gray.shape
+    yPositions = []
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        if w > W // 3:
+            yPositions.append(y)
+    yPositions = sorted(yPositions)
+    rows = []
+    for i in range(len(yPositions) - 1):
+        y1, y2 = yPositions[i], yPositions[i + 1]
+        if y2 - y1 > 0.04 * H:
+            rows.append((y1, y2))
+    return rows
+
+
+
+
 # --------------- Vote-box crop & enhancement ---------------
 def crop_rightmost_square(row_bgr):
     gray = cv2.cvtColor(row_bgr, cv2.COLOR_BGR2GRAY)
@@ -263,6 +372,46 @@ def crop_rightmost_square(row_bgr):
     xe = min(x + w - pad, W); ye = min(y + h - pad, H)
     return row_bgr[yi:ye, xi:xe]
 
+#def crop_rightmost_square(row_bgr):
+    gray = cv2.cvtColor(row_bgr, cv2.COLOR_BGR2GRAY)
+    bin_inv = cv2.threshold(
+        gray, 0, 255,
+        cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
+    )[1]
+
+    H, W = bin_inv.shape
+    contours, _ = cv2.findContours(
+        bin_inv, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    cands = []
+    for c in contours:
+        x, y, w, h = cv2.boundingRect(c)
+        ar = w / float(h)
+        area = w * h
+
+        if x > 0.60 * W and 0.5 < ar < 1.5 and area > 0.005 * W * H:
+            cands.append((x, y, w, h))
+
+    # fallback: just take the right strip
+    if not cands:
+        return row_bgr[:, int(0.75 * W):]
+
+    # right-most candidate
+    x, y, w, h = max(cands, key=lambda b: b[0])
+
+
+    pad_x = int(0.05 * w)
+    pad_y = int(0.05 * h)
+
+    xi = max(x + pad_x, 0)
+    xe = min(x + w - pad_x, W)
+    yi = max(y + pad_y, 0)
+    ye = min(y + h - pad_y, H)
+
+    return row_bgr[yi:ye, xi:xe]
+
+
 def pad_crop_from_box(img, box):
     """Crop box from full image with padding to remove borders."""
     x, y, w, h = box
@@ -272,6 +421,17 @@ def pad_crop_from_box(img, box):
     xe = min(x + w - pad, W); ye = min(y + h - pad, H)
     return img[yi:ye, xi:xe]
 
+
+def remove_horizontal_rules(bin_img):
+    # bin_img: 0/255, black text is 0 after your inversion
+    k = max(5, int(0.015 * bin_img.shape[1]))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k, 1))
+    # extract long horizontal components
+    rules = cv2.morphologyEx(255 - bin_img, cv2.MORPH_OPEN, kernel, iterations=1)
+    # subtract them
+    cleaned = cv2.max(bin_img, 255 - rules)
+    return cleaned
+
 def enhance_vote_box(box_bgr):
     gray = cv2.cvtColor(box_bgr, cv2.COLOR_BGR2GRAY)
     gray = cv2.fastNlMeansDenoising(gray, None, 15, 7, 21)
@@ -279,11 +439,14 @@ def enhance_vote_box(box_bgr):
     g = clahe.apply(gray)
     th = cv2.adaptiveThreshold(g, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                cv2.THRESH_BINARY_INV, 21, 10)
+    
+    th = remove_horizontal_rules(th)
     th = cv2.morphologyEx(th, cv2.MORPH_CLOSE,
                           cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3)), 1)
     return 255 - th   # return white bg (255), black ink (0)
 
-def remove_border_components(enhanced):
+def remove_border_components_v1(enhanced):
+    # --- this is your FIRST version (currently commented out) ---
     fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
     if fg.sum() == 0:
         return fg.astype(bool)
@@ -292,7 +455,6 @@ def remove_border_components(enhanced):
     H, W = fg.shape
     keep = np.zeros_like(fg)
 
-    # Be conservative near edges
     edge_margin = max(1, int(0.02 * min(H, W)))   # was 0.05
 
     for i in range(1, n):  # skip background
@@ -302,17 +464,14 @@ def remove_border_components(enhanced):
         near_border = (x <= edge_margin or y <= edge_margin or
                        x + w >= W - edge_margin or y + h >= H - edge_margin)
 
-        # Only drop if it actually touches a border (not just "near")
         if touches_border:
             continue
 
-        # Drop only *extreme* ruling lines that span almost the entire side
         if (w >= 0.98 * W and h <= 0.12 * H) or (h >= 0.98 * H and w <= 0.12 * W):
             continue
 
         keep[labels == i] = 1
 
-    # Fallback: if nothing kept, keep the largest non-border component
     if keep.sum() == 0 and n > 1:
         best = -1
         best_area = 0
@@ -328,16 +487,111 @@ def remove_border_components(enhanced):
 
     return keep.astype(bool)
 
+
+def remove_border_components_v2(enhanced):
+    # --- this is your SECOND version (currently active in the code) ---
+    fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
+    if fg.sum() == 0:
+        return fg.astype(bool)
+
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(fg, connectivity=8)
+    H, W = fg.shape
+    keep = np.zeros_like(fg)
+
+    for i in range(1, n):  # skip background
+        x, y, w, h, area = stats[i]
+
+        touches_border = (x == 0 or y == 0 or x + w == W or y + h == H)
+
+        is_long_horizontal = touches_border and (w >= 0.9 * W and h <= 0.15 * H)
+        is_long_vertical   = touches_border and (h >= 0.9 * H and w <= 0.15 * W)
+
+        if is_long_horizontal or is_long_vertical:
+            continue
+
+        keep[labels == i] = 1
+
+    if keep.sum() < 0.2 * fg.sum():
+        keep = fg
+
+    return keep.astype(bool)
+
+def remove_border_components_v3(enhanced):
+    # enhanced: 0 = black ink, 255 = white background
+    fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
+    if fg.sum() == 0:
+        return fg.astype(bool)
+
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(fg, connectivity=8)
+    H, W = fg.shape
+    keep = np.zeros_like(fg)
+
+    for i in range(1, n):  # skip background
+        x, y, w, h, area = stats[i]
+
+        touches_border = (x == 0 or y == 0 or x + w == W or y + h == H)
+
+        # only treat VERY long, thin border-touching components as box lines
+        long_horizontal = touches_border and (w >= 0.95 * W and h <= 0.12 * H)
+        long_vertical   = touches_border and (h >= 0.95 * H and w <= 0.12 * W)
+
+        if long_horizontal or long_vertical:
+            # drop ruling line
+            continue
+
+        # keep everything else, including 7-strokes touching the border
+        keep[labels == i] = 1
+
+    # safety fallback
+    if keep.sum() == 0:
+        keep = fg
+
+    return keep.astype(bool)
+
+
+
+# def tight_center_crop(mask_bool, pad=2):
+#     ys, xs = np.where(mask_bool)
+#     if len(xs) == 0:
+#         return None
+
+#     x1, x2 = xs.min(), xs.max()
+#     y1, y2 = ys.min(), ys.max()
+#     h = y2 - y1 + 1
+#     w = x2 - x1 + 1
+
+#     # reject horizontal lines (line width >> line height)
+#     if h < 0.40 * w:      # adjust 0.40 → 0.50 if needed
+#         return None       # treat as “no digit present”
+
+#     # continue with normal cropping...
+#     H, W = mask_bool.shape
+#     x1 = max(0, x1 - pad); y1 = max(0, y1 - pad)
+#     x2 = min(W-1, x2 + pad); y2 = min(H-1, y2 + pad)
+#     return mask_bool[y1:y2+1, x1:x2+1].copy()
+
 def tight_center_crop(mask_bool, pad=2):
+    """
+    Just do a tight crop with padding around any ink.
+    All "is this just a line?" logic should be handled earlier
+    (border removal, frame kill, etc), not here.
+    """
     ys, xs = np.where(mask_bool)
     if len(xs) == 0:
         return None
+
     x1, x2 = xs.min(), xs.max()
     y1, y2 = ys.min(), ys.max()
-    h, w = mask_bool.shape
-    x1 = max(0, x1 - pad); y1 = max(0, y1 - pad)
-    x2 = min(w-1, x2 + pad); y2 = min(h-1, y2 + pad)
+
+    H, W = mask_bool.shape
+    x1 = max(0, x1 - pad)
+    y1 = max(0, y1 - pad)
+    x2 = min(W - 1, x2 + pad)
+    y2 = min(H - 1, y2 + pad)
+
     return mask_bool[y1:y2+1, x1:x2+1].copy()
+
+
 
 def mask_to_mnist28(mask_bool, margin=4, min_stroke_px=2):
     if mask_bool is None or mask_bool.sum() == 0:
@@ -404,43 +658,143 @@ def override_three_if_skinny_one(pred, probs, mask_bool):
         return 1
     return pred
 
-def predict_digit_from_box(model28, vote_box_bgr, row_idx, debug_prefix):
-    enhanced = enhance_vote_box(vote_box_bgr)
-    cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_enhanced.png"), enhanced)
-
-    mask = remove_border_components(enhanced)
-    cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_mask.png"),
-                np.where(mask, 0, 255).astype(np.uint8))
-
-    digit_mask = tight_center_crop(mask, pad=2)
-    if digit_mask is None or digit_mask.sum() == 0:
-        return None, {"ink_ratio": 0.0}
-
-    cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_tight.png"),
-                np.where(digit_mask, 0, 255).astype(np.uint8))
-
-    x28 = mask_to_mnist28(digit_mask, margin=4)
+def classify_single_digit_mask(model28, mask_bool):
+    """
+    Classify a single connected digit mask using the 28x28 MNIST model.
+    Returns (pred_digit, probs, conf, margin) or (None, None, 0.0, 0.0) if not reliable.
+    """
+    x28 = mask_to_mnist28(mask_bool, margin=4)
     if x28 is None:
-        return None, {"ink_ratio": 0.0}
-
-    vis = (x28[0,:,:,0] * 255).astype("uint8")
-    cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_mnist28.png"), vis)
+        return None, None, 0.0, 0.0
 
     probs = model28.predict(x28, verbose=0)[0]
     pred = int(np.argmax(probs))
     top2 = np.partition(probs, -2)[-2:]
     margin = float(top2.max() - top2.min())
     conf = float(probs[pred])
+
+    # Use your existing global thresholds
+    if conf < MIN_TOP_CONF or margin < MIN_MARGIN:
+        return None, probs, conf, margin
+
+    return pred, probs, conf, margin
+
+
+def predict_digit_from_box(model28, vote_box_bgr, row_idx, debug_prefix, border_fn):
+    # Trim box interior a little to remove borders
+    
+    #vote_box_bgr = crop_vote_box_interior(vote_box_bgr, inner_margin=3)
+
+    enhanced = enhance_vote_box(vote_box_bgr)
+    cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_enhanced.png"), enhanced)
+
+    # Apply your chosen border-removal function
+    mask = border_fn(enhanced)
+
+    # Kill a small outer frame just in case any border remains
+    mask = kill_outer_frame(mask, frame=2)
+
+    # Remove tiny specks
+    mask = clean_components(mask.astype(np.uint8), min_area=8)
+
+    cv2.imwrite(
+        os.path.join(OUT_DIR, f"{debug_prefix}_mask.png"),
+        np.where(mask > 0, 0, 255).astype(np.uint8)
+    )
+
+    # Tight crop around remaining ink
+    digit_mask = tight_center_crop(mask.astype(bool), pad=2)
+    if digit_mask is None or digit_mask.sum() == 0:
+        return None, {"ink_ratio": 0.0}
+
+    cv2.imwrite(
+        os.path.join(OUT_DIR, f"{debug_prefix}_tight.png"),
+        np.where(digit_mask, 0, 255).astype(np.uint8)
+    )
+
+    # For debug: see what the full mask looks like at 28x28
+    x28_debug = mask_to_mnist28(digit_mask, margin=4)
+    if x28_debug is not None:
+        vis = (x28_debug[0, :, :, 0] * 255).astype("uint8")
+        cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_mnist28.png"), vis)
+
     ink_ratio = float(digit_mask.mean())
 
-    # Optional skinny-stroke override to avoid 1→3
-    pred = override_three_if_skinny_one(pred, probs, digit_mask)
+    # --- NEW: component grouping: 1 digit vs multi-stroke vs "10" ---
 
-    # NULL if low confidence or low margin
-    if conf < MIN_TOP_CONF or margin < MIN_MARGIN:
-        pred = None
+    comps = get_components(digit_mask)
+    if not comps:
+        return None, {"ink_ratio": ink_ratio}
 
-    return pred, {"ink_ratio": ink_ratio, "probs": probs, "confidence": conf}
+    groups = group_components_into_digits(comps, overlap_thresh=0.4)
+    group_masks = build_group_masks(digit_mask.shape, groups)
+
+    # sort groups left-to-right
+    def group_x_center(gmask):
+        ys, xs = np.where(gmask)
+        return xs.mean() if len(xs) else np.inf
+
+    group_masks.sort(key=group_x_center)
+
+    # Helper: classify a single group mask with your thresholds
+    def classify_group(mask_bool):
+        d, probs, conf, margin = classify_single_digit_mask(model28, mask_bool)
+        if d is None:
+            return None, probs, conf, margin
+        # override 3->1 if skinny
+        d = override_three_if_skinny_one(d, probs, mask_bool)
+        # re-apply NULL thresholds (classify_single_digit_mask already does,
+        # so this is just extra safety)
+        if conf < MIN_TOP_CONF or margin < MIN_MARGIN:
+            return None, probs, conf, margin
+        return d, probs, conf, margin
+
+    # CASE 1: single digit (possibly multi-stroke, like your "5")
+    if len(group_masks) == 1:
+        d, probs, conf, margin = classify_group(group_masks[0])
+        return d, {
+            "ink_ratio": ink_ratio,
+            "probs": probs,
+            "confidence": conf,
+            "margin": margin,
+            "multi_digit": False,
+        }
+
+    # CASE 2: exactly two groups → maybe "10"
+    elif len(group_masks) == 2:
+        d1, p1, c1, m1 = classify_group(group_masks[0])
+        d2, p2, c2, m2 = classify_group(group_masks[1])
+
+        # If both are clear digits and exactly [1,0], treat as "10"
+        if d1 == 1 and d2 == 0:
+            return 10, {
+                "ink_ratio": ink_ratio,
+                "multi_digit": True,
+                "digits": [d1, d2],
+            }
+
+        # Fallback: treat the union as a single messy digit
+        d_full, p_full, c_full, m_full = classify_group(digit_mask)
+        return d_full, {
+            "ink_ratio": ink_ratio,
+            "probs": p_full,
+            "confidence": c_full,
+            "margin": m_full,
+            "multi_digit": False,
+        }
+
+    # CASE 3: 3+ groups: noise or very messy; try full mask as one digit
+    else:
+        d_full, p_full, c_full, m_full = classify_group(digit_mask)
+        return d_full, {
+            "ink_ratio": ink_ratio,
+            "probs": p_full,
+            "confidence": c_full,
+            "margin": m_full,
+            "multi_digit": False,
+            "groups": len(group_masks),
+        }
+
 
 # --------------- Name selection (ONLY candidate + number) ---------------
 def pick_candidate_name(full_line, surname, row_idx):
@@ -526,57 +880,24 @@ def enforce_k_boxes(boxes, img_shape, k=8):
             chosen += remaining[:max(0, k - len(chosen))]
         return chosen[:k]
 
-# --------------- Main ---------------
-def main():
-    #img = read_image_from_url(IMAGE_PATH)
-    img = cv2.imread(IMAGE_PATH)
-    if img is None:
-        print(f"[ERROR] Could not read image: {IMAGE_PATH}")
-        sys.exit(1)
 
-    try:
-        model28 = load_mnist28_model(MODEL_PATH_28)
-        print("[INFO] Loaded MNIST 28x28 model.")
-    except Exception as e:
-        print(f"[ERROR] {e}")
-        sys.exit(1)
-
-    # detect and FILTER boxes
+def run_full_pipeline(img, model28, border_fn):
     raw_boxes = detect_vote_boxes(img)
     boxes = filter_boxes_layout(raw_boxes, img.shape)
 
-    # enforce exactly EXPECTED_BOXES where feasible
     if len(boxes) >= 2:
-        k = max(3, min(20, len(boxes)))   # or use len(find_row_bands(img))
+        k = max(3, min(20, len(boxes)))
         boxes = enforce_k_boxes(boxes, img.shape, k=k)
 
-    # derive rows from filtered boxes, else fallback
     if len(boxes) >= 3:
-        rows = boxes_to_tight_rows(img, boxes)
+        rows = boxes_to_rows(img, boxes)
     else:
         rows = find_row_bands(img)
 
-    print(f"[INFO] Vote boxes (raw): {len(raw_boxes)}; kept: {len(boxes)}; rows: {len(rows)}")
-
-    # debug overlay
-    dbg = img.copy()
-    for i, (x, y, w, h) in enumerate(raw_boxes, 1):
-        cv2.rectangle(dbg, (x, y), (x + w, y + h), (0, 165, 255), 2)  # orange = raw
-        cv2.putText(dbg, f"BR{i}", (x - 50, y + h // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,165,255), 2)
-    for i, (x, y, w, h) in enumerate(boxes, 1):
-        cv2.rectangle(dbg, (x, y), (x + w, y + h), (0, 255, 0), 2)     # green = kept/enforced
-        cv2.putText(dbg, f"B{i}", (x - 40, y + h // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,255,0), 2)
-    for i, (y1, y2) in enumerate(rows, 1):
-        cv2.rectangle(dbg, (0, y1), (img.shape[1] - 1, y2), (255, 0, 0), 2)  # blue = rows
-        cv2.putText(dbg, f"R{i}", (10, y1 + 22), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,0,0), 2)
-    cv2.imwrite(os.path.join(OUT_DIR, "rows_from_boxes_debug.png"), dbg)
-
-    # iterate rows
     results = []
     for i, (y1, y2) in enumerate(rows, start=1):
         row = img[y1:y2, :]
 
-        # prefer filtered detected boxes; else fallback crop
         if i <= len(boxes):
             vote_box = pad_crop_from_box(img, boxes[i - 1])
         else:
@@ -585,7 +906,7 @@ def main():
         cv2.imwrite(os.path.join(OUT_DIR, f"row_{i:02d}_box_raw.png"), vote_box)
 
         pred_digit, meta = predict_digit_from_box(
-            model28, vote_box, i, debug_prefix=f"row_{i:02d}"
+            model28, vote_box, i, debug_prefix=f"row_{i:02d}", border_fn=border_fn
         )
 
         full_line, surname = ocr_name_line(row)
@@ -597,19 +918,79 @@ def main():
             "digit": pred_digit if pred_digit is not None else "NULL"
         })
 
-    # compact report (candidate -> number)
-    print("\n==== Results (Candidate → Number) ====")
-    for r in results:
-        print(f"{r['candidate']:<20} -> {r['digit']}")
+    return results
 
-    # compact CSV
-    csv_path = os.path.join(OUT_DIR, "ballot_results.csv")
-    with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        w.writerow(["row", "candidate", "digit"])
+def crop_vote_box_interior(vote_box_bgr, inner_margin=3):
+    h, w = vote_box_bgr.shape[:2]
+    y1 = inner_margin
+    y2 = h - inner_margin
+    x1 = inner_margin
+    x2 = w - inner_margin
+    if y2 <= y1 or x2 <= x1:
+        return vote_box_bgr  # fallback
+    return vote_box_bgr[y1:y2, x1:x2]
+
+def digits_sequence_ok(results):
+    # keep only real integers, ignore "NULL"
+    digits = [r["digit"] for r in results if isinstance(r["digit"], int)]
+    if not digits:
+        return False
+
+    # sorted digits must be 1..N with no gaps
+    n = len(digits)
+    return sorted(digits) == list(range(1, n+1))
+
+# --------------- Main ---------------
+def main():
+    # load model once
+    try:
+        model28 = load_mnist28_model(MODEL_PATH_28)
+        print("[INFO] Loaded MNIST 28x28 model.")
+    except Exception as e:
+        print(f"[ERROR] {e}")
+        sys.exit(1)
+
+    # get all images in the folder
+    image_paths = []
+    image_paths += glob.glob(os.path.join(IMAGE_DIR, "*.jpg"))
+    image_paths += glob.glob(os.path.join(IMAGE_DIR, "*.jpeg"))
+    image_paths += glob.glob(os.path.join(IMAGE_DIR, "*.png"))
+
+    if not image_paths:
+        print(f"[ERROR] No images found in folder: {IMAGE_DIR}")
+        sys.exit(1)
+
+    for img_path in image_paths:
+        print(f"\n[INFO] Processing {img_path} ...")
+        img = cv2.imread(img_path)
+        if img is None:
+            print(f"[WARNING] Could not read image: {img_path}")
+            continue
+
+        # Run with your preferred border function (or keep your v1/v2/v3 logic)
+        results = run_full_pipeline(img, model28, border_fn=remove_border_components_v1)
+        if not digits_sequence_ok(results):
+            results = run_full_pipeline(img, model28, border_fn=remove_border_components_v2)
+            if not digits_sequence_ok(results):
+                results = run_full_pipeline(img, model28, border_fn=remove_border_components_v3)
+
+        print("==== Results (Candidate → Number) ====")
         for r in results:
-            w.writerow([r["row"], r["candidate"], r["digit"]])
-    print(f"\n[INFO] Saved CSV: {csv_path}")
+            print(f"{r['candidate']:<20} -> {r['digit']}")
+
+        # save CSV per image
+        base = os.path.splitext(os.path.basename(img_path))[0]
+        csv_path = os.path.join(OUT_DIR, f"{base}_results.csv")
+        with open(csv_path, "w", newline="", encoding="utf-8") as f:
+            w = csv.writer(f)
+            w.writerow(["row", "candidate", "digit"])
+            for r in results:
+                w.writerow([r["row"], r["candidate"], r["digit"]])
+        print(f"[INFO] Saved CSV: {csv_path}")
+
+
 
 if __name__ == "__main__":
     main()
+
+
