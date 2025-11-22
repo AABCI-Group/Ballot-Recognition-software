@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-import os, csv, sys, re
+import os, csv, sys, re, json
 import cv2
 import numpy as np
 import urllib.request
-
 # ---------------- CONFIG ----------------
 TESSERACT_EXE = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-IMAGE_PATH = "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-18.jpg"
+IMAGE_PATH = "assets/model/SampleBallots/"
 MODEL_PATH_28 = r"tf-cnn-model.keras"           # your MNIST-style 28x28 model (0-9)
 OUT_DIR = "debug_ballot"
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -27,14 +26,6 @@ MIN_TOP_CONF = 0.60
 MIN_MARGIN   = 0.10
 
 EXPECTED_BOXES = 9
-
-def read_image_from_url(url):
-    with urllib.request.urlopen(url) as resp:
-        data = resp.read()
-    img_array = np.asarray(bytearray(data), dtype=np.uint8)
-    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-    return img
-
 
 def deskew_with_hough(img, max_skew=10, hough_thresh=200):
     """
@@ -79,6 +70,15 @@ def deskew_with_hough(img, max_skew=10, hough_thresh=200):
     )
 
     return rotated, skew_angle
+
+
+def read_image_from_url(url):
+    with urllib.request.urlopen(url) as resp:
+        data = resp.read()
+    img_array = np.asarray(bytearray(data), dtype=np.uint8)
+    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    return img
+
 
 def kill_outer_frame(mask, frame=2):
     """
@@ -727,7 +727,8 @@ def classify_single_digit_mask(model28, mask_bool):
 
 def predict_digit_from_box(model28, vote_box_bgr, row_idx, debug_prefix, border_fn):
     # Trim box interior a little to remove borders
-    vote_box_bgr = crop_vote_box_interior(vote_box_bgr, inner_margin=3)
+    
+    #vote_box_bgr = crop_vote_box_interior(vote_box_bgr, inner_margin=3)
 
     enhanced = enhance_vote_box(vote_box_bgr)
     cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_enhanced.png"), enhanced)
@@ -986,14 +987,10 @@ def digits_sequence_ok(results):
 
 # --------------- Main ---------------
 def main():
-    img = cv2.imread(IMAGE_PATH)
-    if img is None:
-        print(f"[ERROR] Could not read image: {IMAGE_PATH}")
-        sys.exit(1)
     
-    img, angle = deskew_with_hough(img)
-    print(f"[INFO] Deskewed image by {angle:.2f} degrees")
-
+    
+    
+    # Load model once
     try:
         model28 = load_mnist28_model(MODEL_PATH_28)
         print("[INFO] Loaded MNIST 28x28 model.")
@@ -1001,38 +998,69 @@ def main():
         print(f"[ERROR] {e}")
         sys.exit(1)
 
-    # First pass: use v1
-    print("[INFO] Running pipeline with remove_border_components_v1 ...")
-    results = run_full_pipeline(img, model28, border_fn=remove_border_components_v1)
+    # IMAGE_PATH is a folder
+    if not os.path.isdir(IMAGE_PATH):
+        print(f"[ERROR] Folder not found: {IMAGE_PATH}")
+        sys.exit(1)
 
-    # Check if digits form a valid sequence
-    if digits_sequence_ok(results):
-        print("[INFO] Sequence looks valid; keeping results from v1.")
-    else:
-        
-        print("[INFO] Sequence invalid; re-running with remove_border_components_v2 ...")
-        results = run_full_pipeline(img, model28, border_fn=remove_border_components_v2)
-        
+    valid_ext = (".jpg", ".jpeg", ".png", ".bmp", ".tif")
+
+    audit_log = []  # collect results for all images
+
+    for filename in os.listdir(IMAGE_PATH):
+        if not filename.lower().endswith(valid_ext):
+            continue
+
+        img_path = os.path.join(IMAGE_PATH, filename)
+        print(f"\n===== Processing: {img_path} =====")
+
+        img = cv2.imread(img_path)
+        if img is None:
+            print(f"[ERROR] Could not read image: {img_path}")
+            continue
+        img, angle = deskew_with_hough(img)
+        print(f"[INFO] Deskewed image by {angle:.2f} degrees")
+
+        # Run with different border functions until sequence OK (same logic as before)
+        border_used = "v1"
+        print("[INFO] Running pipeline with remove_border_components_v1 ...")
+        results = run_full_pipeline(img, model28, border_fn=remove_border_components_v1)
+
         if digits_sequence_ok(results):
-            print("[INFO] Sequence looks valid; keeping results from v2.")
+            print("[INFO] Sequence looks valid; keeping results from v1.")
         else:
-            print("[WARNING] Sequence still invalid; keeping results from v3.")
-            results = run_full_pipeline(img, model28, border_fn=remove_border_components_v3)
-            
+            border_used = "v2"
+            print("[INFO] Sequence invalid; re-running with remove_border_components_v2 ...")
+            results = run_full_pipeline(img, model28, border_fn=remove_border_components_v2)
 
+            if digits_sequence_ok(results):
+                print("[INFO] Sequence looks valid; keeping results from v2.")
+            else:
+                border_used = "v3"
+                print("[WARNING] Sequence still invalid; keeping results from v3.")
+                results = run_full_pipeline(img, model28, border_fn=remove_border_components_v3)
 
-    # Now 'results' holds whichever pass you decided to keep
-    print("\n==== Results (Candidate → Number) ====")
-    for r in results:
-        print(f"{r['candidate']:<20} -> {r['digit']}")
-
-    csv_path = os.path.join(OUT_DIR, "ballot_results.csv")
-    with open(csv_path, "w", newline="", encoding="utf-8") as f:
-        w = csv.writer(f)
-        w.writerow(["row", "candidate", "digit"])
+        # Print results for this image
+        print("\n==== Results (Candidate → Number) ====")
         for r in results:
-            w.writerow([r["row"], r["candidate"], r["digit"]])
-    print(f"\n[INFO] Saved CSV: {csv_path}")
+            print(f"{r['candidate']:<20} -> {r['digit']}")
+
+        # Add entry to audit log
+        audit_log.append({
+            "image": filename,
+            "image_path": img_path,
+            "border_fn_used": border_used,
+            "results": results,  # list of {row, candidate, digit}
+        })
+
+    # After all images: write one JSON file
+    audit_path = os.path.join(OUT_DIR, "audit_log.json")
+    with open(audit_path, "w", encoding="utf-8") as f:
+        json.dump(audit_log, f, ensure_ascii=False, indent=2)
+
+    print(f"\n[INFO] Saved JSON audit log: {audit_path}")
+
+
 
 
 if __name__ == "__main__":

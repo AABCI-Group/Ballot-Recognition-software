@@ -1,0 +1,3444 @@
+[
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-1.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-1.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 3
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 9
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 5
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 6
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 7
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 8
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "AEAAMIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-10.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-10.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 3
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 1
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "AEAAMHRIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-11.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-11.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 6
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 4
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 3
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 2
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 2
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 1
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-12.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-12.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 3
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 2
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 4
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 7
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 8
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-13.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-13.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 2
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 7
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 9
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 10
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 8
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 5
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-14.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-14.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 2
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 1
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 6
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 5
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 4
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-15.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-15.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 8
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 6
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 5
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 1
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 3
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 7
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-16.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-16.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 7
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 6
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 3
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 1
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 5
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "AAAMMIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-17.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-17.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 4
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 3
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 1
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-18.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-18.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-19.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-19.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 2
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 5
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 6
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-2.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-2.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 3
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 1
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 4
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "BAARMRIAW",
+        "digit": 7
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-20.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-20.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 1
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-21.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-21.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 3
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 1
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "MPEAEAMIN",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-22.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-22.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 4
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 3
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 1
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-23.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-23.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 1
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-24.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-24.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-25.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-25.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 2
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 3
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 5
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 4
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-26.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-26.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 1
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "BREAATLIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-27.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-27.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 1
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 3
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-28.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-28.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 5
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 1
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 4
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-29.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-29.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 4
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 1
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-3.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-3.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 7
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 1
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 3
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 4
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 6
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-30.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-30.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "BAAMI",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-31.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-31.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 3
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 1
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 4
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-32.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-32.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 1
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 6
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 4
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-33.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-33.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 3
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 1
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 2
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "BRBAARMIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-34.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-34.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 4
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 3
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 1
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-35.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-35.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 3
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 1
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-36.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-36.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 5
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 6
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 7
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 2
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 8
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 9
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 1
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "MPAAMIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-37.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-37.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 5
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 6
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 7
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 8
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 2
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 4
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-38.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-38.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 2
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 1
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 8
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 7
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 5
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "MPAAMIATIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-39.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-39.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 2
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 3
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 4
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 1
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 5
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "MPEAAMIAWTIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-4.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-4.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 8
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 7
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 6
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 5
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 1
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 2
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 4
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-40.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-40.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 3
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 1
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-41.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-41.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 5
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 6
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 3
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 4
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 7
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 2
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 1
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-42.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-42.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 2
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 3
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-43.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-43.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 3
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 1
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "-",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 2
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-44.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-44.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 1
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 7
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 6
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 5
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 4
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 3
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-45.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-45.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 3
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 1
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-46.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-46.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 3
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 1
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-47.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-47.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 8
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 6
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 7
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 1
+      },
+      {
+        "row": 10,
+        "candidate": "RAAMMRIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-48.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-48.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 3
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 4
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 1
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-49.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-49.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 3
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 2
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 4
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 5
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 2
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 6
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-5.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-5.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 5
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 4
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 1
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-50.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-50.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 3
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 1
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 4
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 1
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 5
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "EA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-51.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-51.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 1
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 2
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 8
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 9
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 7
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-52.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-52.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 5
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 1
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 6
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 7
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-53.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-53.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 5
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 7
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 6
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 1
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-54.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-54.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 6
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 5
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 4
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 2
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 1
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 4
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "REAATIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-55.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-55.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-56.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-56.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 4
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 1
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 5
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "MAEAARMIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-57.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-57.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 1
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 10
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 9
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 8
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 7
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 5
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 3
+      },
+      {
+        "row": 10,
+        "candidate": "BRAPRIA",
+        "digit": 4
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-58.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-58.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 6
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 5
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 3
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 1
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 4
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-59.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-59.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 4
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 3
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 1
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 1
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-6.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-6.jpg",
+    "border_fn_used": "v2",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 4
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": 8
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 9
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 1
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 10
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 7
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 6
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": 5
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 2
+      },
+      {
+        "row": 10,
+        "candidate": "BSAARIA",
+        "digit": 3
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-7.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-7.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 3
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 1
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 7
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 6
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 5
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 4
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-8.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-8.jpg",
+    "border_fn_used": "v1",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 1
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "7 Seater Ballot Papers Mock Election-images-9.jpg",
+    "image_path": "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-9.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": 6
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": 5
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": 2
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": 1
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": 4
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": 3
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": 2
+      },
+      {
+        "row": 10,
+        "candidate": "BRBEAAATIIA",
+        "digit": 2
+      }
+    ]
+  },
+  {
+    "image": "7-Seater-Ballot-Papers-Mock-Election-images-0.jpg",
+    "image_path": "assets/model/SampleBallots/7-Seater-Ballot-Papers-Mock-Election-images-0.jpg",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "ADAMS",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "CRAWFORD",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "DANIELS",
+        "digit": "NULL"
+      },
+      {
+        "row": 4,
+        "candidate": "DEWEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 5,
+        "candidate": "GROLSH",
+        "digit": "NULL"
+      },
+      {
+        "row": 6,
+        "candidate": "GUINNESS",
+        "digit": "NULL"
+      },
+      {
+        "row": 7,
+        "candidate": "HENNESSEY",
+        "digit": "NULL"
+      },
+      {
+        "row": 8,
+        "candidate": "MIDDLETON",
+        "digit": "NULL"
+      },
+      {
+        "row": 9,
+        "candidate": "POWER",
+        "digit": "NULL"
+      },
+      {
+        "row": 10,
+        "candidate": "TIA",
+        "digit": "NULL"
+      }
+    ]
+  },
+  {
+    "image": "thumbnail_Ballot_Paper_Stamp(No_K).png",
+    "image_path": "assets/model/SampleBallots/thumbnail_Ballot_Paper_Stamp(No_K).png",
+    "border_fn_used": "v3",
+    "results": [
+      {
+        "row": 1,
+        "candidate": "-",
+        "digit": "NULL"
+      },
+      {
+        "row": 2,
+        "candidate": "GAVIN",
+        "digit": "NULL"
+      },
+      {
+        "row": 3,
+        "candidate": "HUMPHREYS",
+        "digit": "NULL"
+      }
+    ]
+  }
+]
