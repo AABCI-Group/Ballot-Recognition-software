@@ -6,7 +6,7 @@ import urllib.request
 
 # ---------------- CONFIG ----------------
 TESSERACT_EXE = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-IMAGE_PATH = "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-18.jpg"
+IMAGE_PATH = "assets/model/SampleBallots/7 Seater Ballot Papers Mock Election-images-7.jpg"
 MODEL_PATH_28 = r"tf-cnn-model.keras"           # your MNIST-style 28x28 model (0-9)
 OUT_DIR = "debug_ballot"
 os.makedirs(OUT_DIR, exist_ok=True)
@@ -20,7 +20,7 @@ for f in os.listdir(OUT_DIR):
 MIN_Y_FRAC = 0.25       # ignore boxes found above top 25% of page
 MIN_X_FRAC = 0.60       # keep only boxes far on the right
 MIN_AREA_FRAC = 0.005   # minimal area vs full page
-PAD_FRAC = 0.08         # crop padding to remove borders (6–12% works well)
+PAD_FRAC = 0.00         # crop padding to remove borders (6–12% works well)
 
 # NULL thresholds
 MIN_TOP_CONF = 0.60
@@ -485,12 +485,12 @@ def enhance_vote_box(box_bgr):
     th = cv2.adaptiveThreshold(g, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                cv2.THRESH_BINARY_INV, 21, 10)
     
-    th = remove_horizontal_rules(th)
+    #th = remove_horizontal_rules(th)
     th = cv2.morphologyEx(th, cv2.MORPH_CLOSE,
                           cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3)), 1)
     return 255 - th   # return white bg (255), black ink (0)
 
-def remove_border_components_v1(enhanced):
+def remove_border_components_v3(enhanced):
     # --- this is your FIRST version (currently commented out) ---
     fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
     if fg.sum() == 0:
@@ -533,7 +533,7 @@ def remove_border_components_v1(enhanced):
     return keep.astype(bool)
 
 
-def remove_border_components_v2(enhanced):
+def remove_border_components_v1(enhanced):
     # --- this is your SECOND version (currently active in the code) ---
     fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
     if fg.sum() == 0:
@@ -561,7 +561,7 @@ def remove_border_components_v2(enhanced):
 
     return keep.astype(bool)
 
-def remove_border_components_v3(enhanced):
+def remove_border_components_v2(enhanced):
     # enhanced: 0 = black ink, 255 = white background
     fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
     if fg.sum() == 0:
@@ -725,6 +725,83 @@ def classify_single_digit_mask(model28, mask_bool):
     return pred, probs, conf, margin
 
 
+def strip_thin_border_pieces(mask, ratio_thresh=0.25):
+    """
+    Remove the thin rectangular frame around the box.
+
+    `mask` is a boolean or 0/1 / 0/255 mask where True/1 = ink.
+    """
+    m = (mask > 0).astype(np.uint8)
+    if m.sum() == 0:
+        return m.astype(bool)
+
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(m, connectivity=8)
+    H, W = m.shape
+    cleaned = np.zeros_like(m)
+
+    for i in range(1, n):  # skip background
+        x, y, w, h, area = stats[i]
+
+        # count how many image borders this component touches
+        touches_left   = int(x == 0)
+        touches_right  = int(x + w == W)
+        touches_top    = int(y == 0)
+        touches_bottom = int(y + h == H)
+        touch_sides = touches_left + touches_right + touches_top + touches_bottom
+
+        # how "filled" its bounding box is
+        area_ratio = area / float(w * h)
+
+        # the box frame: touches ≥ 2 sides and is very sparse in its bounding box
+        drop = (touch_sides >= 2) and (area_ratio < ratio_thresh)
+
+        if not drop:
+            cleaned[labels == i] = 1
+
+    # safety fallback
+    if cleaned.sum() == 0:
+        cleaned = m
+
+    return cleaned.astype(bool)
+
+def is_frame_only_mask(mask_bool,
+                       band_frac=0.16,
+                       min_border_ratio=0.8,
+                       max_area_ratio=0.30):
+    """
+    Heuristic: True if almost all ink is near the image border and
+    the overall ink is very thin compared to its bounding box
+    (i.e. looks like a box frame, not a digit).
+    """
+    m = (mask_bool > 0).astype(np.uint8)
+    total = m.sum()
+    if total == 0:
+        return False
+
+    H, W = m.shape
+
+    # bounding box of all ink
+    ys, xs = np.where(m)
+    y1, y2 = ys.min(), ys.max()
+    x1, x2 = xs.min(), xs.max()
+    bb_area = (y2 - y1 + 1) * (x2 - x1 + 1)
+    area_ratio = total / float(bb_area)  # thin frame → small ratio
+
+    # how much ink lies in a border band?
+    band = max(1, int(band_frac * min(H, W)))
+    border = np.zeros_like(m, np.uint8)
+    border[:band, :] = 1
+    border[-band:, :] = 1
+    border[:, :band] = 1
+    border[:, -band:] = 1
+
+    border_ink = (m & border).sum()
+    border_ratio = border_ink / float(total)
+
+    # frame-only if: mostly on border AND very thin overall
+    return (border_ratio >= min_border_ratio) and (area_ratio <= max_area_ratio)
+
+
 def predict_digit_from_box(model28, vote_box_bgr, row_idx, debug_prefix, border_fn):
     # Trim box interior a little to remove borders
     vote_box_bgr = crop_vote_box_interior(vote_box_bgr, inner_margin=3)
@@ -735,12 +812,17 @@ def predict_digit_from_box(model28, vote_box_bgr, row_idx, debug_prefix, border_
     # Apply your chosen border-removal function
     mask = border_fn(enhanced)
 
+    mask = strip_thin_border_pieces(mask)
     # Kill a small outer frame just in case any border remains
     mask = kill_outer_frame(mask, frame=2)
-
+    
     # Remove tiny specks
     mask = clean_components(mask.astype(np.uint8), min_area=8)
-
+    if is_frame_only_mask(mask):
+        return None, {
+        "ink_ratio": float(mask.mean()),
+        "frame_only": True
+    }
     cv2.imwrite(
         os.path.join(OUT_DIR, f"{debug_prefix}_mask.png"),
         np.where(mask > 0, 0, 255).astype(np.uint8)
@@ -994,6 +1076,17 @@ def main():
     img, angle = deskew_with_hough(img)
     print(f"[INFO] Deskewed image by {angle:.2f} degrees")
 
+    rows = find_row_bands(img)  # or boxes_to_rows(...)
+
+    H, W = img.shape[:2]
+    debug = img.copy()
+    for idx, (y1, y2) in enumerate(rows, start=1):
+        cv2.rectangle(debug, (0, y1), (W-1, y2), (0, 0, 255), 3)
+        cv2.putText(debug, str(idx), (10, (y1 + y2)//2),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+
+    cv2.imwrite(os.path.join(OUT_DIR, "rows_highlighted.png"), debug)
+
     try:
         model28 = load_mnist28_model(MODEL_PATH_28)
         print("[INFO] Loaded MNIST 28x28 model.")
@@ -1015,9 +1108,9 @@ def main():
         
         if digits_sequence_ok(results):
             print("[INFO] Sequence looks valid; keeping results from v2.")
-        else:
-            print("[WARNING] Sequence still invalid; keeping results from v3.")
-            results = run_full_pipeline(img, model28, border_fn=remove_border_components_v3)
+        # else:
+        #     print("[WARNING] Sequence still invalid; keeping results from v3.")
+        #     results = run_full_pipeline(img, model28, border_fn=remove_border_components_v3)
             
 
 

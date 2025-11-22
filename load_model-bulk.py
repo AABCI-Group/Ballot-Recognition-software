@@ -19,7 +19,7 @@ for f in os.listdir(OUT_DIR):
 MIN_Y_FRAC = 0.25       # ignore boxes found above top 25% of page
 MIN_X_FRAC = 0.60       # keep only boxes far on the right
 MIN_AREA_FRAC = 0.005   # minimal area vs full page
-PAD_FRAC = 0.08         # crop padding to remove borders (6–12% works well)
+PAD_FRAC = 0.0         # crop padding to remove borders (6–12% works well)
 
 # NULL thresholds
 MIN_TOP_CONF = 0.60
@@ -490,7 +490,7 @@ def enhance_vote_box(box_bgr):
                           cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3)), 1)
     return 255 - th   # return white bg (255), black ink (0)
 
-def remove_border_components_v1(enhanced):
+def remove_border_components_v3(enhanced):
     # --- this is your FIRST version (currently commented out) ---
     fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
     if fg.sum() == 0:
@@ -533,7 +533,7 @@ def remove_border_components_v1(enhanced):
     return keep.astype(bool)
 
 
-def remove_border_components_v2(enhanced):
+def remove_border_components_v1(enhanced):
     # --- this is your SECOND version (currently active in the code) ---
     fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
     if fg.sum() == 0:
@@ -561,7 +561,7 @@ def remove_border_components_v2(enhanced):
 
     return keep.astype(bool)
 
-def remove_border_components_v3(enhanced):
+def remove_border_components_v2(enhanced):
     # enhanced: 0 = black ink, 255 = white background
     fg = (enhanced < 128).astype(np.uint8)  # 1 = ink
     if fg.sum() == 0:
@@ -724,44 +724,116 @@ def classify_single_digit_mask(model28, mask_bool):
 
     return pred, probs, conf, margin
 
+def strip_thin_border_pieces(mask, ratio_thresh=0.25):
+    """
+    Remove the thin rectangular frame around the box.
+
+    `mask` is a boolean or 0/1 / 0/255 mask where True/1 = ink.
+    """
+    m = (mask > 0).astype(np.uint8)
+    if m.sum() == 0:
+        return m.astype(bool)
+
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(m, connectivity=8)
+    H, W = m.shape
+    cleaned = np.zeros_like(m)
+
+    for i in range(1, n):  # skip background
+        x, y, w, h, area = stats[i]
+
+        # count how many image borders this component touches
+        touches_left   = int(x == 0)
+        touches_right  = int(x + w == W)
+        touches_top    = int(y == 0)
+        touches_bottom = int(y + h == H)
+        touch_sides = touches_left + touches_right + touches_top + touches_bottom
+
+        # how "filled" its bounding box is
+        area_ratio = area / float(w * h)
+
+        # the box frame: touches ≥ 2 sides and is very sparse in its bounding box
+        drop = (touch_sides >= 2) and (area_ratio < ratio_thresh)
+
+        if not drop:
+            cleaned[labels == i] = 1
+
+    # safety fallback
+    if cleaned.sum() == 0:
+        cleaned = m
+
+    return cleaned.astype(bool)
+
+def is_frame_only_mask(mask_bool,
+                       band_frac=0.16,
+                       min_border_ratio=0.8,
+                       max_area_ratio=0.30):
+    """
+    Heuristic: True if almost all ink is near the image border and
+    the overall ink is very thin compared to its bounding box
+    (i.e. looks like a box frame, not a digit).
+    """
+    m = (mask_bool > 0).astype(np.uint8)
+    total = m.sum()
+    if total == 0:
+        return False
+
+    H, W = m.shape
+
+    # bounding box of all ink
+    ys, xs = np.where(m)
+    y1, y2 = ys.min(), ys.max()
+    x1, x2 = xs.min(), xs.max()
+    bb_area = (y2 - y1 + 1) * (x2 - x1 + 1)
+    area_ratio = total / float(bb_area)  # thin frame → small ratio
+
+    # how much ink lies in a border band?
+    band = max(1, int(band_frac * min(H, W)))
+    border = np.zeros_like(m, np.uint8)
+    border[:band, :] = 1
+    border[-band:, :] = 1
+    border[:, :band] = 1
+    border[:, -band:] = 1
+
+    border_ink = (m & border).sum()
+    border_ratio = border_ink / float(total)
+
+    # frame-only if: mostly on border AND very thin overall
+    return (border_ratio >= min_border_ratio) and (area_ratio <= max_area_ratio)
 
 def predict_digit_from_box(model28, vote_box_bgr, row_idx, debug_prefix, border_fn):
-    # Trim box interior a little to remove borders
+
     
     #vote_box_bgr = crop_vote_box_interior(vote_box_bgr, inner_margin=3)
 
     enhanced = enhance_vote_box(vote_box_bgr)
-    cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_enhanced.png"), enhanced)
+    
 
     # Apply your chosen border-removal function
     mask = border_fn(enhanced)
 
+    mask = strip_thin_border_pieces(mask)
     # Kill a small outer frame just in case any border remains
     mask = kill_outer_frame(mask, frame=2)
-
+    
     # Remove tiny specks
     mask = clean_components(mask.astype(np.uint8), min_area=8)
+    if is_frame_only_mask(mask):
+        return None, {
+        "ink_ratio": float(mask.mean()),
+        "frame_only": True
+    }
 
-    cv2.imwrite(
-        os.path.join(OUT_DIR, f"{debug_prefix}_mask.png"),
-        np.where(mask > 0, 0, 255).astype(np.uint8)
-    )
-
+   
     # Tight crop around remaining ink
     digit_mask = tight_center_crop(mask.astype(bool), pad=2)
     if digit_mask is None or digit_mask.sum() == 0:
         return None, {"ink_ratio": 0.0}
 
-    cv2.imwrite(
-        os.path.join(OUT_DIR, f"{debug_prefix}_tight.png"),
-        np.where(digit_mask, 0, 255).astype(np.uint8)
-    )
-
     # For debug: see what the full mask looks like at 28x28
     x28_debug = mask_to_mnist28(digit_mask, margin=4)
     if x28_debug is not None:
         vis = (x28_debug[0, :, :, 0] * 255).astype("uint8")
-        cv2.imwrite(os.path.join(OUT_DIR, f"{debug_prefix}_mnist28.png"), vis)
+
 
     ink_ratio = float(digit_mask.mean())
 
@@ -948,8 +1020,6 @@ def run_full_pipeline(img, model28, border_fn):
         else:
             vote_box = crop_rightmost_square(row)
 
-        cv2.imwrite(os.path.join(OUT_DIR, f"row_{i:02d}_box_raw.png"), vote_box)
-
         pred_digit, meta = predict_digit_from_box(
             model28, vote_box, i, debug_prefix=f"row_{i:02d}", border_fn=border_fn
         )
@@ -1044,13 +1114,21 @@ def main():
         print("\n==== Results (Candidate → Number) ====")
         for r in results:
             print(f"{r['candidate']:<20} -> {r['digit']}")
+        
 
+        sequence_ok = digits_sequence_ok(results)
+        numbers_found = sum(1 for r in results if isinstance(r["digit"], int))
+        
+        print(f"[INFO] Numbers in sequence: {sequence_ok}")
+        print(f"[INFO] Total numbers found: {numbers_found}")
         # Add entry to audit log
         audit_log.append({
             "image": filename,
             "image_path": img_path,
             "border_fn_used": border_used,
-            "results": results,  # list of {row, candidate, digit}
+            "sequence_ok": sequence_ok,          # True/False
+            "numbers_found": numbers_found,      # count of non-NULL digits
+            "results": results,    
         })
 
     # After all images: write one JSON file
