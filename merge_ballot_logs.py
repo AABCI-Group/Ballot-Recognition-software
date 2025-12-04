@@ -1,7 +1,6 @@
 import json
 import os
 import csv
-import re
 import random
 from datetime import datetime
 
@@ -9,7 +8,10 @@ import requests  # pip install requests
 
 # ---------- Supabase config ----------
 SUPABASE_URL = "https://wcuzjrawfvhocbaibfbi.supabase.co"  # your URL
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjdXpqcmF3ZnZob2NiYWliZmJpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjMxNzIwMSwiZXhwIjoyMDc3ODkzMjAxfQ.DKofOwqLe3VLDA0EER36YX_f04Xtqj7jygn3BYiFFg8"  # put your anon/service key here
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjdXpqcmF3ZnZob2NiYWliZmJpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjMxNzIwMSwiZXhwIjoyMDc3ODkzMjAxfQ.DKofOwqLe3VLDA0EER36YX_f04Xtqj7jygn3BYiFFg8"  # put your key in an env var
+
+if not SUPABASE_KEY:
+    raise RuntimeError("Set SUPABASE_KEY environment variable with your Supabase anon/service key")
 
 # Adjust these if your paths are different
 YOLO_LOG = "outputs/inference_manifest.json"
@@ -63,7 +65,7 @@ def get_existing_ballot_ids() -> set[int]:
     """
     Fetch existing ballot_id values from Supabase and return as a set.
     """
-    url = f"{SUPABASE_URL}/rest/v1/Practice_Ballots"
+    url = f"{SUPABASE_URL}/rest/v1/Ballots"
     params = {"select": "ballot_id"}
     headers = {
         "apikey": SUPABASE_KEY,
@@ -94,7 +96,35 @@ def generate_unique_ballot_id(existing_ids: set[int]) -> int:
             return new_id
 
 
-# ---------- Main merging / CSV logic ----------
+def insert_rows_into_supabase(rows: list[dict]):
+    """
+    Insert a list of row dicts into the ballots table in Supabase.
+    Uses REST API directly.
+    """
+    if not rows:
+        print("No rows to insert into Supabase.")
+        return
+
+    url = f"{SUPABASE_URL}/rest/v1/Ballots"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        # Uncomment the next line to turn it into an UPSERT on ballot_id:
+        # "Prefer": "resolution=merge-duplicates"
+    }
+
+    resp = requests.post(url, json=rows, headers=headers)
+    try:
+        resp.raise_for_status()
+    except Exception as e:
+        print("Error inserting into Supabase:", resp.text)
+        raise
+
+    print(f"Inserted {len(rows)} rows into Supabase.")
+
+
+# ---------- Main merging / CSV + DB logic ----------
 
 def main():
     # --- Load YOLO log ---
@@ -113,10 +143,7 @@ def main():
     existing_ids = get_existing_ballot_ids()
 
     # Index YOLO records by normalized filename
-    yolo_by_name = {}
-    for rec in yolo_data:
-        name = normalize_name(rec["image"])
-        yolo_by_name[name] = rec
+    yolo_by_name = {normalize_name(rec["image"]): rec for rec in yolo_data}
 
     # Index DIGIT records by normalized filename
     digit_by_name = {}
@@ -135,37 +162,29 @@ def main():
         y_raw = yolo_by_name.get(name)
         d_raw = digit_by_name.get(name)
 
-        ballot = {
-            "image": name,
-        }
+        ballot = {"image": name}
 
         # Stamp info (YOLO)
         if y_raw is not None:
             ballot["stamp"] = simplify_yolo(y_raw)
         else:
-            ballot["stamp"] = {
-                "stamp_label": "NO YOLO DATA",
-                "score": 0.0,
-            }
+            ballot["stamp"] = {"stamp_label": "NO YOLO DATA", "score": 0.0}
 
         # Digit info
-        if d_raw is not None:
-            ballot["digits"] = simplify_digit(d_raw)
-        else:
-            ballot["digits"] = None
+        ballot["digits"] = simplify_digit(d_raw) if d_raw is not None else None
 
         merged.append(ballot)
 
     # Ensure logs/ directory exists
     os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)
 
-    # Write merged JSON (optional, same as before)
+    # Write merged JSON (optional)
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
         json.dump(merged, f, ensure_ascii=False, indent=2)
 
-    # --- Write Supabase-style CSV ---
-    # Columns: created_at, vote_preference, verification_type,
-    #          candidate_name, ballot_id, box_location, image_url
+    # --- Build rows for CSV + Supabase insert ---
+    rows_for_db: list[dict] = []
+
     with open(OUTPUT_CSV, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(
@@ -204,12 +223,12 @@ def main():
             for res in digits.get("results", []):
                 digit = res.get("digit")
                 if digit in (None, "", "NULL"):
-                    # Skip NULL digits
-                    continue
+                    continue  # skip NULL digits
 
                 row_num = res.get("row")
                 candidate_name = ROW_TO_CANDIDATE.get(row_num, f"ROW_{row_num}")
 
+                # CSV
                 writer.writerow(
                     [
                         created_at,
@@ -222,8 +241,24 @@ def main():
                     ]
                 )
 
+                # For DB insert
+                rows_for_db.append(
+                    {
+                        "created_at": created_at,
+                        "vote_preference": int(digit),
+                        "verification_type": verification_type,
+                        "candidate_name": candidate_name,
+                        "ballot_id": ballot_id,
+                        "box_location": box_location,
+                        "image_url": image_url,
+                    }
+                )
+
     print(f"Wrote {len(merged)} merged ballots to {OUTPUT_JSON}")
-    print(f"Supabase-style CSV: {OUTPUT_CSV}")
+    print(f"CSV summary: {OUTPUT_CSV}")
+
+    # --- Insert into Supabase ---
+    insert_rows_into_supabase(rows_for_db)
 
 
 if __name__ == "__main__":

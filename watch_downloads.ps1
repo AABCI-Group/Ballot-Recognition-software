@@ -1,10 +1,8 @@
-$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Continue" 
 
-# Assume this script sits in your project root
 $projectRoot = $PSScriptRoot
 Set-Location $projectRoot
 
-# Folder to watch -> "uploads" folder inside the project
 $folder = Join-Path $projectRoot "uploads"
 
 if (-not (Test-Path $folder)) {
@@ -13,7 +11,6 @@ if (-not (Test-Path $folder)) {
     New-Item -ItemType Directory -Path $folder | Out-Null
 }
 
-# Log file
 $logFile = Join-Path $projectRoot "watcher.log"
 
 function Global:Write-Log {
@@ -24,15 +21,12 @@ function Global:Write-Log {
     Add-Content -Path $logFile -Value $line
 }
 
-# Global variables so event handlers can see them
-$global:pythonExe = Join-Path $projectRoot ".venv\Scripts\python.exe"
-$global:weights   = Join-Path $projectRoot "runs\train\yolo_stamp\weights\best.pt"
-$global:outDir    = Join-Path $projectRoot "outputs"
+# ✅ Just use the literal exe name (or full path if you want)
+$pythonExe = "python"
 
 Write-Log "Starting watcher in $projectRoot, watching folder: $folder"
-Write-Log "Using python: $global:pythonExe"
+Write-Log "Using python: $pythonExe"
 
-# Set up the file system watcher
 $fsw = New-Object System.IO.FileSystemWatcher
 $fsw.Path = $folder
 $fsw.IncludeSubdirectories = $false
@@ -40,32 +34,38 @@ $fsw.Filter = "*.*"
 $fsw.NotifyFilter = [IO.NotifyFilters]'FileName, LastWrite, CreationTime'
 $fsw.EnableRaisingEvents = $true
 
-# CREATED handler: run the model
 Register-ObjectEvent -InputObject $fsw -EventName Created -Action {
     $path = $Event.SourceEventArgs.FullPath
     $ext  = [System.IO.Path]::GetExtension($path).ToLower()
 
     Write-Log "Created event: $path (ext=$ext)"
 
-    # Extensions we care about
     $imgExts = ".png", ".jpg", ".jpeg", ".tif", ".tiff"
 
     if ($imgExts -contains $ext) {
         Write-Log "New image detected: $path"
-        Write-Log "About to run python for: $path"
+        Write-Log "Running full extraction pipeline..."
 
-        # Log exact command
-        $cmdLine = "`"$global:pythonExe`" -m src.infer.predict --weights `"$global:weights`" --images `"$path`" --out_dir `"$global:outDir`""
-        Write-Log "Command: $cmdLine"
+        # NOTE: uploads/ is relative to $projectRoot (where you started the script)
+        $imagesArg = "uploads/"
+
+        # Build arguments as an *array* (no quoting headaches)
+        $args = @(
+            "-m", "src.runtime.run_full_extraction",
+            "--images", $imagesArg,
+            "--bucket", "ballot-imgs",
+            "--s3_prefix", "raw-images/"
+        )
+
+        # Hard-code python name here to avoid scope madness
+        $py = "python"
+
+        Write-Log "Command: $py $($args -join ' ')"
 
         try {
-            & $global:pythonExe -m src.infer.predict `
-                --weights $global:weights `
-                --images  $path `
-                --out_dir $global:outDir 2>&1 |
-                ForEach-Object { Write-Log "python: $_" }
-
-            Write-Log "Python finished for $path with exit code $LASTEXITCODE"
+            Write-Log "Starting python process..."
+            Start-Process -FilePath $py -ArgumentList $args -NoNewWindow -Wait
+            Write-Log "Python full extraction finished for $path"
         }
         catch {
             Write-Log "ERROR running python: $($_.Exception.Message)"
@@ -73,14 +73,12 @@ Register-ObjectEvent -InputObject $fsw -EventName Created -Action {
     }
 } | Out-Null
 
-# CHANGED handler – just logs
 Register-ObjectEvent -InputObject $fsw -EventName Changed -Action {
     $path = $Event.SourceEventArgs.FullPath
     $ext  = [System.IO.Path]::GetExtension($path).ToLower()
     Write-Log "Changed event: $path (ext=$ext)"
 } | Out-Null
 
-# RENAMED handler – just logs
 Register-ObjectEvent -InputObject $fsw -EventName Renamed -Action {
     $path = $Event.SourceEventArgs.FullPath
     $ext  = [System.IO.Path]::GetExtension($path).ToLower()
@@ -89,7 +87,6 @@ Register-ObjectEvent -InputObject $fsw -EventName Renamed -Action {
 
 Write-Log "Watching $folder for new image files... Press Ctrl+C to stop."
 
-# Keep this PowerShell process alive
 while ($true) {
     Wait-Event -Timeout 5 | Out-Null
 }
