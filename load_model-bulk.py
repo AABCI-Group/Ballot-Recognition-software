@@ -5,8 +5,8 @@ import numpy as np
 import urllib.request
 # ---------------- CONFIG ----------------
 TESSERACT_EXE = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-IMAGE_PATH = "assets/model/SampleBallots/"
-MODEL_PATH_28 = r"tf-cnn-model.keras"           # your MNIST-style 28x28 model (0-9)
+#IMAGE_PATH = "assets/model/SampleBallots/"
+MODEL_PATH_28 = r"Handwritten-Digit-Recognition/tf-cnn-model.keras"           # your MNIST-style 28x28 model (0-9)
 OUT_DIR = "debug_ballot"
 os.makedirs(OUT_DIR, exist_ok=True)
 for f in os.listdir(OUT_DIR):
@@ -1056,10 +1056,7 @@ def digits_sequence_ok(results):
     return sorted(digits) == list(range(1, n+1))
 
 # --------------- Main ---------------
-def main():
-    
-    
-    
+def main(image_dir):
     # Load model once
     try:
         model28 = load_mnist28_model(MODEL_PATH_28)
@@ -1068,20 +1065,20 @@ def main():
         print(f"[ERROR] {e}")
         sys.exit(1)
 
-    # IMAGE_PATH is a folder
-    if not os.path.isdir(IMAGE_PATH):
-        print(f"[ERROR] Folder not found: {IMAGE_PATH}")
+    # image_dir is a folder
+    if not os.path.isdir(image_dir):
+        print(f"[ERROR] Folder not found: {image_dir}")
         sys.exit(1)
 
     valid_ext = (".jpg", ".jpeg", ".png", ".bmp", ".tif")
 
     audit_log = []  # collect results for all images
 
-    for filename in os.listdir(IMAGE_PATH):
+    for filename in os.listdir(image_dir):
         if not filename.lower().endswith(valid_ext):
             continue
 
-        img_path = os.path.join(IMAGE_PATH, filename)
+        img_path = os.path.join(image_dir, filename)
         print(f"\n===== Processing: {img_path} =====")
 
         img = cv2.imread(img_path)
@@ -1091,7 +1088,6 @@ def main():
         img, angle = deskew_with_hough(img)
         print(f"[INFO] Deskewed image by {angle:.2f} degrees")
 
-        # Run with different border functions until sequence OK (same logic as before)
         border_used = "v1"
         print("[INFO] Running pipeline with remove_border_components_v1 ...")
         results = run_full_pipeline(img, model28, border_fn=remove_border_components_v1)
@@ -1110,28 +1106,25 @@ def main():
                 print("[WARNING] Sequence still invalid; keeping results from v3.")
                 results = run_full_pipeline(img, model28, border_fn=remove_border_components_v3)
 
-        # Print results for this image
         print("\n==== Results (Candidate → Number) ====")
         for r in results:
             print(f"{r['candidate']:<20} -> {r['digit']}")
-        
 
         sequence_ok = digits_sequence_ok(results)
         numbers_found = sum(1 for r in results if isinstance(r["digit"], int))
-        
+
         print(f"[INFO] Numbers in sequence: {sequence_ok}")
         print(f"[INFO] Total numbers found: {numbers_found}")
-        # Add entry to audit log
+
         audit_log.append({
             "image": filename,
             "image_path": img_path,
             "border_fn_used": border_used,
-            "sequence_ok": sequence_ok,          # True/False
-            "numbers_found": numbers_found,      # count of non-NULL digits
-            "results": results,    
+            "sequence_ok": sequence_ok,
+            "numbers_found": numbers_found,
+            "results": results,
         })
 
-    # After all images: write one JSON file
     audit_path = os.path.join(OUT_DIR, "audit_log.json")
     with open(audit_path, "w", encoding="utf-8") as f:
         json.dump(audit_log, f, ensure_ascii=False, indent=2)
@@ -1142,6 +1135,15 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
 
+    parser = argparse.ArgumentParser(description="Bulk digit recognizer for ballots")
+    parser.add_argument(
+        "--images",
+        required=True,
+        help="Directory of ballot images to scan (same directory as YOLO predict)"
+    )
+    args = parser.parse_args()
+
+    main(args.images)
 
