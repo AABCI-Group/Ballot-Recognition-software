@@ -48,7 +48,7 @@ def main():
     }
 
     model = YOLO(args.model)
-    # ⬇️ The important fix
+    # ⬇ The important fix
     model.train(**overrides)
 
     # Export best weights to ONNX and TorchScript (if present)
@@ -56,9 +56,9 @@ def main():
     if os.path.exists(best):
         YOLO(best).export(format="onnx", opset=13, simplify=True)
         YOLO(best).export(format="torchscript")
-        print("✅ Training complete and exports written")
+        print("Training complete and exports written")
     else:
-        print("⚠️ Training finished but best.pt not found yet. Check runs/train/yolo_stamp for results.")
+        print("raining finished but best.pt not found yet. Check runs/train/yolo_stamp for results.")
 
 if __name__ == "__main__":
     main()

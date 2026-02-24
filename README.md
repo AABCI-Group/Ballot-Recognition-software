@@ -111,7 +111,7 @@ python src/tools/split_yolo.py       --images data/synth/images       --labels_d
 ### Step 2 — Train the detector (YOLO, CUDA 12.1)
 ```bash
 # Lightweight model for fast training/inference
-python -m src.models.train_yolo --epochs 10 --imgsz 1280 --batch 16
+python -m src.models.train_yolo --epochs 50 --imgsz 640 --batch 16
 ```
 Output weights:
 - `runs/train/yolo_stamp/weights/best.pt`
@@ -216,5 +216,5 @@ upload a ballot from phone
 
 
 ## 10) Run Full prediction
-python -m src.runtime.run_full_extraction --images data/SampleBallots
+python -m src.runtime.run_full_extraction --images data/SampleBallots/15Cand --bucket ballot-imgs --s3_prefix raw-images/
 python merge_ballot_logs.py
