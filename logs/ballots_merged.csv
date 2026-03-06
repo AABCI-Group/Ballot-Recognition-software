@@ -1,9 +1,5 @@
 created_at,election_id,random_ballot_id,ballot_state,box_location,image_url,row_num,candidate_id,candidate_name,preference
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,1,1,Candidate_1,6
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,2,2,Candidate_2,1
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,4,4,Candidate_4,3
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,5,5,Candidate_5,2
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,6,6,Candidate_6,5
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,10,10,Candidate_10,7
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,11,11,Candidate_11,4
-2026-02-23T23:57:44.563381+00:00,1,1070870,Doubtful,,15CandidateBallot_v1.png,14,14,Candidate_14,8
+2026-03-06T16:34:55.180442+00:00,1,7091329,Valid,Ardagh National School 81,testImage.jpg,1,1,Candidate_1,4
+2026-03-06T16:34:55.180442+00:00,1,7091329,Valid,Ardagh National School 81,testImage.jpg,3,3,Candidate_3,1
+2026-03-06T16:34:55.180442+00:00,1,7091329,Valid,Ardagh National School 81,testImage.jpg,6,6,Candidate_6,3
+2026-03-06T16:34:55.180442+00:00,1,7091329,Valid,Ardagh National School 81,testImage.jpg,7,7,Candidate_7,2

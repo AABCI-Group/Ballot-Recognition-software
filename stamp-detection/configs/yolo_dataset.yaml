@@ -1,0 +1,7 @@
+path: data/yolo_split
+train: train/images
+val: val/images
+test: test/images
+
+names:
+  0: stamp

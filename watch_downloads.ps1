@@ -1,4 +1,4 @@
-$ErrorActionPreference = "Continue" 
+$ErrorActionPreference = "Continue"
 
 $projectRoot = $PSScriptRoot
 Set-Location $projectRoot
@@ -21,7 +21,50 @@ function Global:Write-Log {
     Add-Content -Path $logFile -Value $line
 }
 
-# ✅ Just use the literal exe name (or full path if you want)
+function Global:Wait-FileReady {
+    param(
+        [Parameter(Mandatory=$true)][string]$Path,
+        [int]$TimeoutSeconds = 30,
+        [int]$PollMs = 250
+    )
+
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($sw.Elapsed.TotalSeconds -lt $TimeoutSeconds) {
+        try {
+            # If we can open with no sharing, writer is done.
+            $fs = [System.IO.File]::Open($Path, 'Open', 'ReadWrite', 'None')
+            $fs.Close()
+            return $true
+        }
+        catch {
+            Start-Sleep -Milliseconds $PollMs
+        }
+    }
+    return $false
+}
+
+function Global:Try-DeleteFile {
+    param(
+        [Parameter(Mandatory=$true)][string]$Path,
+        [int]$Retries = 10,
+        [int]$DelayMs = 300
+    )
+
+    for ($i=1; $i -le $Retries; $i++) {
+        try {
+            if (Test-Path $Path) {
+                Remove-Item -LiteralPath $Path -Force -ErrorAction Stop
+            }
+            return $true
+        }
+        catch {
+            Start-Sleep -Milliseconds $DelayMs
+        }
+    }
+    return $false
+}
+
+# Just use the literal exe name (or full path if you want)
 $pythonExe = "python"
 
 Write-Log "Starting watcher in $projectRoot, watching folder: $folder"
@@ -44,31 +87,48 @@ Register-ObjectEvent -InputObject $fsw -EventName Created -Action {
 
     if ($imgExts -contains $ext) {
         Write-Log "New image detected: $path"
+
+        # Wait until the file is fully written
+        if (-not (Wait-FileReady -Path $path -TimeoutSeconds 60)) {
+            Write-Log "ERROR: File not ready after timeout, skipping: $path"
+            return
+        }
+
         Write-Log "Running full extraction pipeline..."
 
         # NOTE: uploads/ is relative to $projectRoot (where you started the script)
         $imagesArg = "uploads/"
 
-        # Build arguments as an *array* (no quoting headaches)
         $args = @(
-            "-m", "src.runtime.run_full_extraction",
+            "run_full_extraction.py",
             "--images", $imagesArg,
             "--bucket", "ballot-imgs",
             "--s3_prefix", "raw-images/"
         )
 
-        # Hard-code python name here to avoid scope madness
         $py = "python"
 
         Write-Log "Command: $py $($args -join ' ')"
 
         try {
             Write-Log "Starting python process..."
-            Start-Process -FilePath $py -ArgumentList $args -NoNewWindow -Wait
-            Write-Log "Python full extraction finished for $path"
+            $p = Start-Process -FilePath $py -ArgumentList $args -NoNewWindow -Wait -PassThru
+            Write-Log "Python full extraction finished (ExitCode=$($p.ExitCode)) for $path"
+
+            if ($p.ExitCode -eq 0) {
+                Write-Log "Deleting processed image: $path"
+                if (Try-DeleteFile -Path $path) {
+                    Write-Log "Deleted: $path"
+                } else {
+                    Write-Log "ERROR: Failed to delete after retries: $path"
+                }
+            } else {
+                Write-Log "Not deleting $path because extraction failed (ExitCode=$($p.ExitCode))"
+            }
         }
         catch {
             Write-Log "ERROR running python: $($_.Exception.Message)"
+            Write-Log "Not deleting $path due to error."
         }
     }
 } | Out-Null

@@ -1,19 +1,17 @@
 .venv/
 __pycache__/
-runs/
-outputs/
-.data/
-*.pt
 *.onnx
 *.log
 *.json
-data/
 
+stamp-detection/runs/
+stamp-detection/outputs/
+stamp-detection/data/
+stamp-detection/*.pt
 
-
-Handwritten-Digit-Recongnition/.ipynb_checkpoints/
-Handwritten-Digit-Recongnition/cnn1.py
-Handwritten-Digit-Recongnition/cnn2.py
-Handwritten-Digit-Recongnition/cnn3.py
-Handwritten-Digit-Recongnition/cnn_notebook.ipynb
-Handwritten-Digit-Recongnition/debug_ballot/
+Handwritten-Digit-Recognition/.ipynb_checkpoints/
+Handwritten-Digit-Recognition/cnn1.py
+Handwritten-Digit-Recognition/cnn2.py
+Handwritten-Digit-Recognition/cnn3.py
+Handwritten-Digit-Recognition/cnn_notebook.ipynb
+Handwritten-Digit-Recognition/debug_ballot/
