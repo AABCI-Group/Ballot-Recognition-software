@@ -70,6 +70,44 @@ docker build -f Dockerfile.app -t ballot-stamp-verifier:app .
 docker build -f Dockerfile.lambda -t ballot-stamp-verifier:lambda .
 ```
 
+## ECR/Lambda Manifest Error (PowerShell)
+
+If Lambda returns:
+`The image manifest, config or layer media type ... is not supported`,
+build and push a single-platform image without provenance/sbom attestations.
+
+```powershell
+$AWS_REGION = "us-east-1"
+$ACCOUNT_ID = "246121021858"
+$REPO_NAME  = "ballot-stamp-verifier-lambda"
+$IMAGE_TAG  = "lambda-amd64"
+
+$ECR_URI = "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$REPO_NAME"
+
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+
+docker buildx build `
+  --platform linux/amd64 `
+  --provenance=false `
+  --sbom=false `
+  -f Dockerfile.lambda `
+  -t "${ECR_URI}:$IMAGE_TAG" `
+  --push `
+  .
+
+aws lambda update-function-configuration `
+  --function-name "ballot-stamp-verifier-lambda" `
+  --architectures x86_64 `
+  --region $AWS_REGION
+
+aws lambda update-function-code `
+  --function-name "ballot-stamp-verifier-lambda" `
+  --image-uri "${ECR_URI}:$IMAGE_TAG" `
+  --region $AWS_REGION
+```
+
+If your function architecture is `arm64`, use `--platform linux/arm64` and
+set `--architectures arm64`.
 ## Local Smoke Test (single image)
 
 ```bash
@@ -128,3 +166,4 @@ Python 3.13 is not recommended for this dependency set.
 - Partition key: `idempotency_key` (String).
 - TTL attribute: `ttl` (Number, epoch seconds).
 - Optional GSI for operations dashboard by `status`.
+

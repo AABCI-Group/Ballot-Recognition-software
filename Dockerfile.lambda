@@ -9,6 +9,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_ONLY_BINARY=:all:
 
+# OpenCV runtime dependency required by cv2 import on AWS Lambda base image.
+RUN if command -v yum >/dev/null 2>&1; then \
+      yum install -y mesa-libGL && yum clean all && rm -rf /var/cache/yum; \
+    elif command -v dnf >/dev/null 2>&1; then \
+      dnf install -y mesa-libGL && dnf clean all && rm -rf /var/cache/dnf; \
+    elif command -v microdnf >/dev/null 2>&1; then \
+      microdnf install -y mesa-libGL && microdnf clean all; \
+    else \
+      echo "No supported package manager found in base image" && exit 1; \
+    fi
+
 COPY requirements-runtime.txt ${LAMBDA_TASK_ROOT}/requirements-runtime.txt
 RUN python -m pip install --upgrade pip && \
     pip install --no-cache-dir --prefer-binary --only-binary=:all: -r ${LAMBDA_TASK_ROOT}/requirements-runtime.txt && \

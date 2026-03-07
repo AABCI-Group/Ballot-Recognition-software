@@ -17,6 +17,7 @@ dynamodb = boto3.client("dynamodb")
 
 IDEMPOTENCY_TABLE = os.getenv("IDEMPOTENCY_TABLE", "")
 IDEMPOTENCY_TTL_DAYS = int(os.getenv("IDEMPOTENCY_TTL_DAYS", "7"))
+IDEMPOTENCY_IN_PROGRESS_TIMEOUT_SEC = int(os.getenv("IDEMPOTENCY_IN_PROGRESS_TIMEOUT_SEC", "130"))
 PIPELINE_TMP_ROOT = os.getenv("PIPELINE_TMP_ROOT", "/tmp/ballot-runtime")
 STAMP_WEIGHTS = os.getenv(
     "STAMP_WEIGHTS",
@@ -54,11 +55,12 @@ def _idempotency_key(bucket: str, key: str, version_id: Optional[str], etag: Opt
 
 
 def _put_if_absent(token: str, payload: Dict[str, Any]) -> bool:
-    expires = int((datetime.now(timezone.utc) + timedelta(days=IDEMPOTENCY_TTL_DAYS)).timestamp())
+    now = datetime.now(timezone.utc)
+    expires = int((now + timedelta(days=IDEMPOTENCY_TTL_DAYS)).timestamp())
     item = {
         "idempotency_key": {"S": token},
         "status": {"S": "IN_PROGRESS"},
-        "created_at": {"S": datetime.now(timezone.utc).isoformat()},
+        "created_at": {"S": now.isoformat()},
         "ttl": {"N": str(expires)},
         "payload": {"S": json.dumps(payload, separators=(",", ":"))},
     }
@@ -73,6 +75,79 @@ def _put_if_absent(token: str, payload: Dict[str, Any]) -> bool:
         if exc.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
             return False
         raise
+
+
+def _get_item(token: str) -> Optional[Dict[str, Any]]:
+    resp = dynamodb.get_item(
+        TableName=IDEMPOTENCY_TABLE,
+        Key={"idempotency_key": {"S": token}},
+        ConsistentRead=True,
+    )
+    return resp.get("Item")
+
+
+def _parse_created_at(item: Dict[str, Any]) -> Optional[datetime]:
+    value = ((item.get("created_at") or {}).get("S")) if item else None
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _claim_existing(token: str, payload: Dict[str, Any]) -> bool:
+    item = _get_item(token)
+    if not item:
+        # A race may have deleted/expired the item between writes.
+        return _put_if_absent(token, payload)
+
+    status = ((item.get("status") or {}).get("S")) or ""
+    now = datetime.now(timezone.utc)
+    expires = int((now + timedelta(days=IDEMPOTENCY_TTL_DAYS)).timestamp())
+    created_at = _parse_created_at(item)
+    stale_cutoff = now - timedelta(seconds=IDEMPOTENCY_IN_PROGRESS_TIMEOUT_SEC)
+
+    # Reclaim stale locks created by hard timeout (Lambda timeout kills process).
+    reclaim_stale = status == "IN_PROGRESS" and created_at is not None and created_at <= stale_cutoff
+    retry_failed = status == "FAILED"
+    if not (reclaim_stale or retry_failed):
+        return False
+
+    expr_values = {
+        ":in_progress": {"S": "IN_PROGRESS"},
+        ":now": {"S": now.isoformat()},
+        ":ttl": {"N": str(expires)},
+        ":payload": {"S": json.dumps(payload, separators=(",", ":"))},
+    }
+    condition = "#s = :expected_status"
+    expr_values[":expected_status"] = {"S": status}
+
+    # Keep condition tight for stale IN_PROGRESS reclaiming.
+    if reclaim_stale and created_at is not None:
+        condition += " AND created_at = :expected_created_at"
+        expr_values[":expected_created_at"] = {"S": created_at.isoformat()}
+
+    try:
+        dynamodb.update_item(
+            TableName=IDEMPOTENCY_TABLE,
+            Key={"idempotency_key": {"S": token}},
+            ConditionExpression=condition,
+            UpdateExpression="SET #s = :in_progress, created_at = :now, updated_at = :now, ttl = :ttl, payload = :payload",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues=expr_values,
+        )
+        return True
+    except ClientError as exc:
+        if exc.response.get("Error", {}).get("Code") == "ConditionalCheckFailedException":
+            return False
+        raise
+
+
+def _acquire_processing_slot(token: str, payload: Dict[str, Any]) -> bool:
+    if _put_if_absent(token, payload):
+        return True
+    return _claim_existing(token, payload)
 
 
 def _set_status(token: str, status: str, details: Optional[Dict[str, Any]] = None) -> None:
@@ -117,7 +192,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     token = _idempotency_key(bucket, key, version_id, etag)
     payload = {"bucket": bucket, "key": key, "version_id": version_id, "etag": etag}
 
-    if not _put_if_absent(token, payload):
+    if not _acquire_processing_slot(token, payload):
         return {
             "status": "duplicate",
             "bucket": bucket,

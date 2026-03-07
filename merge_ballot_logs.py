@@ -51,6 +51,56 @@ def fetch_all_random_ballot_ids(election_id: int, page_size: int = 1000) -> set[
 
     return existing
 
+def random_ballot_id_exists(election_id: int, ballot_id: int) -> bool:
+    """
+    Cheap existence check used by Lambda runtime to avoid full-table scans.
+    """
+    url = f"{SUPABASE_URL}/rest/v1/{TBL_BALLOT_PAPER}"
+    params = {
+        "select": "random_ballot_id",
+        "election_id": f"eq.{election_id}",
+        "random_ballot_id": f"eq.{ballot_id}",
+        "limit": "1",
+    }
+    resp = _session_get(url, params=params, headers=_headers())
+    resp.raise_for_status()
+    return bool(resp.json())
+
+
+def allocate_random_ballot_id(
+    election_id: int,
+    used_this_run: set[int],
+    min_id: int = 1_000_001,
+    max_id: int = 9_999_999,
+    max_attempts: int = 40,
+) -> int:
+    """
+    Allocate an ID without preloading the entire table.
+    """
+    if max_id < min_id:
+        raise ValueError("max_id must be >= min_id")
+
+    if not supabase_enabled():
+        while True:
+            candidate = random.randint(min_id, max_id)
+            if candidate not in used_this_run:
+                used_this_run.add(candidate)
+                return candidate
+
+    for _ in range(max_attempts):
+        candidate = random.randint(min_id, max_id)
+        if candidate in used_this_run:
+            continue
+        if not random_ballot_id_exists(election_id, candidate):
+            used_this_run.add(candidate)
+            return candidate
+
+    # Fallback to monotonic allocation from current max.
+    candidate = get_next_random_ballot_id(election_id)
+    while candidate in used_this_run:
+        candidate += 1
+    used_this_run.add(candidate)
+    return candidate
 
 def get_random_unused_ballot_id(
     election_id: int,
@@ -411,8 +461,6 @@ def main():
                 "preference",
             ]
         )
-
-        existing_ids = fetch_all_random_ballot_ids(ELECTION_ID) if supabase_enabled() else set()
         used_this_run: set[int] = set()
 
         for b in merged:
@@ -430,14 +478,9 @@ def main():
 
             created_at = datetime.utcnow().isoformat() + "+00:00"
             box_location = read_current_box()
-            image_url = MERGE_IMAGE_URL or image_name
-
-            # Inside the for b in merged: loop:
-            while True:
-                random_ballot_id = random.randint(1_000_001, 9_999_999)
-                if random_ballot_id not in existing_ids and random_ballot_id not in used_this_run:
-                    used_this_run.add(random_ballot_id)
-                    break
+            # Persist only the image filename, even if MERGE_IMAGE_URL is a full S3 URI.
+            image_url = normalize_name(MERGE_IMAGE_URL) if MERGE_IMAGE_URL else normalize_name(image_name)
+            random_ballot_id = allocate_random_ballot_id(ELECTION_ID, used_this_run)
 
             # Insert ONE BallotPaper row per ballot
             ballot_paper_rows.append(
@@ -518,6 +561,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
