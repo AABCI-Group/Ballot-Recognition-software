@@ -1,0 +1,12 @@
+# Runtime-only dependencies (no training stack)
+# Use CPU-only PyTorch wheels to avoid pulling CUDA runtime packages.
+--extra-index-url https://download.pytorch.org/whl/cpu
+boto3==1.37.12
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+PyYAML==6.0.2
+requests==2.32.3
+ultralytics==8.3.6
+torch==2.5.1+cpu
+torchvision==0.20.1+cpu
+tensorflow-cpu==2.16.1

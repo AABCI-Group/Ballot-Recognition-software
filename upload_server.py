@@ -652,6 +652,9 @@ class UploadHandler(BaseHTTPRequestHandler):
         if path in ("/", "/index.html"):
             return self._send_html(upload_page(MAX_UPLOAD_BYTES // (1024 * 1024)))
 
+        if path == "/healthz":
+            return self._send_json({"ok": True, "service": "upload_server"}, status=200)
+
         if path == "/set_box":
             box = (qs.get("box", [""])[0] or "").strip()
             if not box:

@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import Dict, List, Optional
 import glob
 import requests  # pip install requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import random
 from math import inf
 
@@ -29,7 +31,7 @@ def fetch_all_random_ballot_ids(election_id: int, page_size: int = 1000) -> set[
             "offset": str(offset),
             "order": "random_ballot_id.asc",
         }
-        resp = requests.get(url, params=params, headers=_headers())
+        resp = _session_get(url, params=params, headers=_headers())
         resp.raise_for_status()
         rows = resp.json()
 
@@ -83,10 +85,8 @@ def get_random_unused_ballot_id(
     )
 # ---------- Supabase config ----------
 SUPABASE_URL = os.getenv("SUPABASE_URL", "https://wcuzjrawfvhocbaibfbi.supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndjdXpqcmF3ZnZob2NiYWliZmJpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjMxNzIwMSwiZXhwIjoyMDc3ODkzMjAxfQ.DKofOwqLe3VLDA0EER36YX_f04Xtqj7jygn3BYiFFg8")  # <-- set this in env vars (DO NOT hardcode)
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
-if not SUPABASE_KEY:
-    raise RuntimeError("Set SUPABASE_KEY environment variable with your Supabase anon/service key")
 
 # ---------- Constants ----------
 ELECTION_ID = int(os.getenv("ELECTION_ID", "1"))
@@ -102,6 +102,21 @@ YOLO_LOG = os.getenv("YOLO_LOG", "stamp-detection/outputs/inference_manifest.jso
 OUTPUT_JSON = os.getenv("OUTPUT_JSON", "logs/ballots_merged.json")
 OUTPUT_CSV = os.getenv("OUTPUT_CSV", "logs/ballots_merged.csv")
 DIGIT_OUT_DIR = os.getenv("DIGIT_OUT_DIR", "debug_ballot")
+MERGE_IMAGE_URL = os.getenv("MERGE_IMAGE_URL", "").strip()
+REQUEST_TIMEOUT = float(os.getenv("SUPABASE_HTTP_TIMEOUT_SEC", "30"))
+
+_retry = Retry(total=5, connect=5, read=5, backoff_factor=0.5, status_forcelist=(429, 500, 502, 503, 504), allowed_methods=("GET", "POST", "PATCH"), raise_on_status=False)
+SESSION = requests.Session()
+SESSION.mount("https://", HTTPAdapter(max_retries=_retry))
+SESSION.mount("http://", HTTPAdapter(max_retries=_retry))
+
+def _session_get(url: str, **kwargs):
+    kwargs.setdefault("timeout", REQUEST_TIMEOUT)
+    return SESSION.get(url, **kwargs)
+
+def _session_post(url: str, **kwargs):
+    kwargs.setdefault("timeout", REQUEST_TIMEOUT)
+    return SESSION.post(url, **kwargs)
 
 
 
@@ -184,7 +199,12 @@ def simplify_digit(digit_rec: dict) -> dict:
 
 
 # ---------- Supabase helpers ----------
+def _require_supabase_key() -> None:
+    if not SUPABASE_KEY:
+        raise RuntimeError("Set SUPABASE_KEY environment variable with your Supabase service key")
+
 def _headers(return_representation: bool = False) -> dict:
+    _require_supabase_key()
     h = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -196,6 +216,11 @@ def _headers(return_representation: bool = False) -> dict:
     return h
 
 
+def supabase_enabled() -> bool:
+    return bool(SUPABASE_KEY)
+
+
+
 def fetch_candidates_for_election(election_id: int) -> List[dict]:
     """Fetch candidates for an election, sorted by candidate id asc."""
     url = f"{SUPABASE_URL}/rest/v1/{TBL_CANDIDATE}"
@@ -204,7 +229,7 @@ def fetch_candidates_for_election(election_id: int) -> List[dict]:
         "election_id": f"eq.{election_id}",
         "order": "id.asc",
     }
-    resp = requests.get(url, params=params, headers=_headers())
+    resp = _session_get(url, params=params, headers=_headers())
     resp.raise_for_status()
     candidates = resp.json()
     if not candidates:
@@ -234,7 +259,7 @@ def get_next_random_ballot_id(election_id: int) -> int:
         "order": "random_ballot_id.desc",
         "limit": "1",
     }
-    resp = requests.get(url, params=params, headers=_headers())
+    resp = _session_get(url, params=params, headers=_headers())
     resp.raise_for_status()
     rows = resp.json()
     if not rows:
@@ -252,7 +277,7 @@ def insert_ballot_papers(rows: List[dict]) -> None:
         return
 
     url = f"{SUPABASE_URL}/rest/v1/{TBL_BALLOT_PAPER}"
-    resp = requests.post(url, json=rows, headers=_headers(return_representation=True))
+    resp = _session_post(url, json=rows, headers=_headers(return_representation=True))
 
     if resp.status_code >= 400:
         print("Error inserting into BallotPaperTBL:", resp.status_code, resp.text)
@@ -272,7 +297,7 @@ def insert_ballot_preferences(rows: List[dict]) -> None:
         return
 
     url = f"{SUPABASE_URL}/rest/v1/{TBL_BALLOT_PREF}"
-    resp = requests.post(url, json=rows, headers=_headers(return_representation=True))
+    resp = _session_post(url, json=rows, headers=_headers(return_representation=True))
 
     if resp.status_code >= 400:
         print("Error inserting into BallotPreferenceTBL:", resp.status_code, resp.text)
@@ -286,12 +311,14 @@ def insert_ballot_preferences(rows: List[dict]) -> None:
 
 
 def read_current_box() -> str:
+    env_box = os.getenv("BOX_LOCATION", "").strip()
+    if env_box:
+        return env_box
     try:
         with open("current_box.json", "r", encoding="utf-8") as f:
             return (json.load(f) or {}).get("box_location", "")
     except Exception:
         return ""
-
 
 # ---------- Main ----------
 def main():
@@ -304,9 +331,13 @@ def main():
     # --- Load DIGIT log ---
     digit_data = load_digit_runs(DIGIT_OUT_DIR)
 
-    # --- Fetch candidates for election ---
-    candidates_sorted = fetch_candidates_for_election(ELECTION_ID)
-    row_to_candidate = build_row_to_candidate_map(candidates_sorted)
+    # --- Fetch candidates for election (optional in offline/local mode) ---
+    row_to_candidate: Dict[int, dict] = {}
+    if supabase_enabled():
+        candidates_sorted = fetch_candidates_for_election(ELECTION_ID)
+        row_to_candidate = build_row_to_candidate_map(candidates_sorted)
+    else:
+        print("[WARN] SUPABASE_KEY missing; running in offline merge mode (no candidate lookup, no inserts).")
 
     # --- Index YOLO records by normalized filename ---
     yolo_by_name: Dict[str, dict] = {}
@@ -381,7 +412,7 @@ def main():
             ]
         )
 
-        existing_ids = fetch_all_random_ballot_ids(ELECTION_ID)
+        existing_ids = fetch_all_random_ballot_ids(ELECTION_ID) if supabase_enabled() else set()
         used_this_run: set[int] = set()
 
         for b in merged:
@@ -399,7 +430,7 @@ def main():
 
             created_at = datetime.utcnow().isoformat() + "+00:00"
             box_location = read_current_box()
-            image_url = image_name  # store filename or S3 URL if you prefer
+            image_url = MERGE_IMAGE_URL or image_name
 
             # Inside the for b in merged: loop:
             while True:
@@ -475,12 +506,18 @@ def main():
     if ballot_pref_rows:
         print("First 5 BallotPreference rows:", ballot_pref_rows[:5])
 
-    # --- Insert into Supabase ---
-    insert_ballot_papers(ballot_paper_rows)
-    insert_ballot_preferences(ballot_pref_rows)
+    # --- Insert into Supabase (optional) ---
+    if supabase_enabled():
+        insert_ballot_papers(ballot_paper_rows)
+        insert_ballot_preferences(ballot_pref_rows)
+    else:
+        print("[INFO] Skipped Supabase inserts (SUPABASE_KEY not set).")
 
     print("Done.")
 
 
 if __name__ == "__main__":
     main()
+
+
+

@@ -1,0 +1,130 @@
+# Containerization and Deployment Design (Runtime-Only)
+
+This design uses existing model artifacts only:
+- Stamp model: `stamp-detection/runs/train/yolo_stamp/weights/best.pt`
+- Digit model: `Handwritten-Digit-Recognition/tf-cnn-model.keras`
+
+No training pipeline is required in images.
+
+## Recommended Topology
+
+Use **two images**:
+1. `Dockerfile.app` for local/manual server use (`upload_server.py`, smoke tests, optional batch invocation).
+2. `Dockerfile.lambda` for AWS Lambda S3 event processing.
+
+Reason: the Lambda image should be minimal and tuned for `/tmp` ephemeral execution and event handler startup path. The app image keeps local/dev ergonomics.
+
+## Lambda Event Flow (watch_downloads replacement)
+
+`lambda_handler.lambda_handler`:
+1. Receives `ObjectCreated` event from S3.
+2. Chooses the newest record when a batch contains multiple records.
+3. Uses DynamoDB conditional write (`idempotency_key`) to dedupe retries/duplicates.
+4. Downloads object to `/tmp/ballot-runtime/.../input/<filename>`.
+5. Runs `runtime_pipeline.process_single_ballot(...)`:
+   - stamp inference (`src.infer.predict`)
+   - digit extraction (`ballot_reader.cli`)
+   - merge + Supabase insert (`merge_ballot_logs.py`)
+6. Updates idempotency row to `SUCCEEDED` or `FAILED`.
+
+## Idempotency Strategy
+
+Table key: `idempotency_key` (string) composed from `bucket + key + versionId + eTag`.
+
+Processing guard:
+- `PutItem` with `ConditionExpression attribute_not_exists(idempotency_key)`.
+- If condition fails, event is treated as duplicate and skipped.
+- Row status transitions: `IN_PROGRESS` -> `SUCCEEDED` / `FAILED`.
+- TTL cleanup via `ttl` epoch field (`IDEMPOTENCY_TTL_DAYS`).
+
+## CPU/GPU Notes
+
+- Lambda path is CPU-only (`YOLO_DEVICE=cpu` default).
+- Stamp predictor now supports `--device` and auto fallback (GPU if available, else CPU).
+- Previous hardcoded `device=0` behavior has been removed.
+
+## Paths, State, Persistence
+
+Local Docker mounts (compose):
+- `./uploads -> /app/uploads`
+- `./logs -> /app/runtime/logs`
+- `./debug_ballot -> /app/runtime/debug_ballot`
+- `./stamp-detection/outputs -> /app/runtime/stamp_outputs`
+
+Lambda:
+- All runtime writes go under `/tmp/ballot-runtime`.
+- No assumption of persistent local filesystem between invocations.
+
+## Security and Ops
+
+- No secrets in code/image layers; provide via env/Secrets Manager.
+- `merge_ballot_logs.py` now requires `SUPABASE_KEY` from environment (no embedded default key).
+- App container runs as non-root `appuser`.
+- Health check endpoint: `GET /healthz` in `upload_server.py`.
+- Supabase requests use retry + backoff + timeout controls.
+
+## Build
+
+```bash
+docker build -f Dockerfile.app -t ballot-stamp-verifier:app .
+docker build -f Dockerfile.lambda -t ballot-stamp-verifier:lambda .
+```
+
+## Local Smoke Test (single image)
+
+```bash
+python runtime_pipeline.py \
+  --image uploads/1000013245.jpg \
+  --stamp_weights stamp-detection/runs/train/yolo_stamp/weights/best.pt \
+  --digit_model Handwritten-Digit-Recognition/tf-cnn-model.keras \
+  --work_root ./runtime-test \
+  --yolo_device cpu \
+  --image_url s3://example-bucket/raw-images/1000013245.jpg
+```
+
+## Local Lambda Invocation (S3 event simulation)
+
+Start lambda container:
+```bash
+docker compose up lambda-local
+```
+
+Invoke with sample event:
+```bash
+curl -s -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+  -H "Content-Type: application/json" \
+  -d @events/s3_object_created.json
+```
+
+## Failure and Retry Behavior
+
+- Lambda raises on failures so AWS retry/DLQ behavior applies.
+- Duplicate event retries are short-circuited by idempotency table.
+- Supabase transient failures are retried by HTTP adapter policy.
+
+## Python Compatibility Guidance
+
+Use Python **3.11** for mixed TensorFlow + PyTorch runtime stability.
+Python 3.13 is not recommended for this dependency set.
+
+## AWS Lambda Configuration Recommendations
+
+- Runtime image: `Dockerfile.lambda` pushed to ECR.
+- Architecture: `x86_64` (most compatible with TensorFlow/PyTorch wheel mix).
+- Memory: start at `3072 MB` and tune with CloudWatch duration.
+- Timeout: start at `120s`.
+- Ephemeral storage: at least `2048 MB` (increase if larger ballot images/batches).
+- Reserved concurrency: set based on Supabase throughput and expected S3 ingest rate.
+- Retry destination: configure DLQ (SQS) or on-failure destination.
+
+## IAM Permissions (Lambda Role)
+
+- `s3:GetObject` on input bucket/prefix.
+- `dynamodb:PutItem`, `dynamodb:UpdateItem`, `dynamodb:GetItem` on idempotency table.
+- Network egress to Supabase endpoint (via NAT/public subnet as needed).
+
+## DynamoDB Table Shape
+
+- Partition key: `idempotency_key` (String).
+- TTL attribute: `ttl` (Number, epoch seconds).
+- Optional GSI for operations dashboard by `status`.

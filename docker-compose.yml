@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    image: ballot-stamp-verifier:app
+    env_file:
+      - .env
+    environment:
+      PIPELINE_WORK_ROOT: /app/runtime
+      YOLO_DEVICE: ${YOLO_DEVICE:-cpu}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/runtime/logs
+      - ./debug_ballot:/app/runtime/debug_ballot
+      - ./stamp-detection/outputs:/app/runtime/stamp_outputs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  lambda-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.lambda
+    image: ballot-stamp-verifier:lambda
+    env_file:
+      - .env
+    environment:
+      YOLO_DEVICE: ${YOLO_DEVICE:-cpu}
+      PIPELINE_TMP_ROOT: /tmp/ballot-runtime
+    ports:
+      - "9000:8080"

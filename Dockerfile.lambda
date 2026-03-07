@@ -1,0 +1,29 @@
+FROM public.ecr.aws/lambda/python:3.11
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    YOLO_DEVICE=cpu \
+    PIPELINE_TMP_ROOT=/tmp/ballot-runtime \
+    STAMP_WEIGHTS=/var/task/stamp-detection/runs/train/yolo_stamp/weights/best.pt \
+    DIGIT_MODEL=/var/task/Handwritten-Digit-Recognition/tf-cnn-model.keras \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_ONLY_BINARY=:all:
+
+COPY requirements-runtime.txt ${LAMBDA_TASK_ROOT}/requirements-runtime.txt
+RUN python -m pip install --upgrade pip && \
+    pip install --no-cache-dir --prefer-binary --only-binary=:all: -r ${LAMBDA_TASK_ROOT}/requirements-runtime.txt && \
+    rm -rf /root/.cache/pip
+
+COPY lambda_handler.py ${LAMBDA_TASK_ROOT}/lambda_handler.py
+COPY runtime_pipeline.py ${LAMBDA_TASK_ROOT}/runtime_pipeline.py
+COPY merge_ballot_logs.py ${LAMBDA_TASK_ROOT}/merge_ballot_logs.py
+COPY current_box.json ${LAMBDA_TASK_ROOT}/current_box.json
+
+COPY stamp-detection/src ${LAMBDA_TASK_ROOT}/stamp-detection/src
+COPY stamp-detection/configs ${LAMBDA_TASK_ROOT}/stamp-detection/configs
+COPY stamp-detection/runs/train/yolo_stamp/weights/best.pt ${LAMBDA_TASK_ROOT}/stamp-detection/runs/train/yolo_stamp/weights/best.pt
+
+COPY Handwritten-Digit-Recognition/ballot_reader ${LAMBDA_TASK_ROOT}/Handwritten-Digit-Recognition/ballot_reader
+COPY Handwritten-Digit-Recognition/tf-cnn-model.keras ${LAMBDA_TASK_ROOT}/Handwritten-Digit-Recognition/tf-cnn-model.keras
+
+CMD ["lambda_handler.lambda_handler"]
