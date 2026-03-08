@@ -28,6 +28,7 @@ RUN python -m pip install --upgrade pip && \
 COPY lambda_handler.py ${LAMBDA_TASK_ROOT}/lambda_handler.py
 COPY runtime_pipeline.py ${LAMBDA_TASK_ROOT}/runtime_pipeline.py
 COPY merge_ballot_logs.py ${LAMBDA_TASK_ROOT}/merge_ballot_logs.py
+COPY remove-background ${LAMBDA_TASK_ROOT}/remove-background
 COPY current_box.json ${LAMBDA_TASK_ROOT}/current_box.json
 
 COPY stamp-detection/src ${LAMBDA_TASK_ROOT}/stamp-detection/src

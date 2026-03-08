@@ -15,3 +15,7 @@ Handwritten-Digit-Recognition/cnn2.py
 Handwritten-Digit-Recognition/cnn3.py
 Handwritten-Digit-Recognition/cnn_notebook.ipynb
 Handwritten-Digit-Recognition/debug_ballot/
+debug_ballot/*
+logs/*
+
+runtime-test/*

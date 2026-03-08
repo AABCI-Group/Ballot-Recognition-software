@@ -26,6 +26,7 @@ pip install --index-url https://download.pytorch.org/whl/cu121 torch torchvision
 # Project deps
 pip install -r requirements.txt
 
+#Nvidia gpu
 pip uninstall -y torch torchvision torchaudio
 pip install --pre --upgrade --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/nightly/cu130
 ```

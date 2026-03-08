@@ -10,8 +10,10 @@ The base folder orchestrates both pipelines and merges results.
 ## Base-folder entry points
 
 - Upload server (local/manual): `python upload_server.py`
-- Full runtime pipeline for one image (stamp + handwritten + merge):
+- Full runtime pipeline for one image (remove-background + stamp + handwritten + merge):
   - `python runtime_pipeline.py --image uploads/1000013245.jpg --yolo_device cpu`
+- Standalone background-removal test:
+  - python remove-background/cli.py --input uploads --out_dir runtime-test/remove-background/crops --debug_dir runtime-test/remove-background/debug
 - Legacy orchestrator (still available):
   - `python run_full_extraction.py --images uploads/ --bucket ballot-imgs --s3_prefix raw-images/`
 - Merge only:
