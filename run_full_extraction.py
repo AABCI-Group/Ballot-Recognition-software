@@ -1,10 +1,9 @@
-import argparse
+﻿import argparse
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
-
 import boto3
 
 
@@ -18,10 +17,7 @@ args = parser.parse_args()
 REPO_ROOT = Path(__file__).resolve().parent
 STAMP_ROOT = REPO_ROOT / "stamp-detection"
 HWR_ROOT = REPO_ROOT / "Handwritten-Digit-Recognition"
-REMOVE_BG_ROOT = REPO_ROOT / "remove-background"
 
-if str(REMOVE_BG_ROOT) not in sys.path:
-    sys.path.insert(0, str(REMOVE_BG_ROOT))
 
 from remove_background import VALID_EXTENSIONS, crop_ballot_paper
 

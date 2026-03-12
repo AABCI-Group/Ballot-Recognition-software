@@ -149,7 +149,7 @@ Python 3.13 is not recommended for this dependency set.
 
 - Runtime image: `Dockerfile.lambda` pushed to ECR.
 - Architecture: `x86_64` (most compatible with TensorFlow/PyTorch wheel mix).
-- Memory: start at `3072 MB` and tune with CloudWatch duration.
+- Memory: start at `3008 MB` and tune with CloudWatch duration.
 - Timeout: start at `120s`.
 - Ephemeral storage: at least `2048 MB` (increase if larger ballot images/batches).
 - Reserved concurrency: set based on Supabase throughput and expected S3 ingest rate.

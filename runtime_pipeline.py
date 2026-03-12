@@ -1,4 +1,4 @@
-import os
+﻿import os
 import shutil
 import subprocess
 import sys
@@ -9,12 +9,9 @@ from typing import Optional
 REPO_ROOT = Path(__file__).resolve().parent
 STAMP_ROOT = REPO_ROOT / "stamp-detection"
 HWR_ROOT = REPO_ROOT / "Handwritten-Digit-Recognition"
-REMOVE_BG_ROOT = REPO_ROOT / "remove-background"
 DEFAULT_STAMP_WEIGHTS = STAMP_ROOT / "runs" / "train" / "yolo_stamp" / "weights" / "best.pt"
 DEFAULT_DIGIT_MODEL = HWR_ROOT / "tf-cnn-model.keras"
 
-if str(REMOVE_BG_ROOT) not in sys.path:
-    sys.path.insert(0, str(REMOVE_BG_ROOT))
 
 from remove_background import crop_ballot_paper
 
