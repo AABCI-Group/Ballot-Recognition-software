@@ -169,6 +169,16 @@ def _session_post(url: str, **kwargs):
     return SESSION.post(url, **kwargs)
 
 
+def is_valid_preference_sequence(preferences: List[int]) -> bool:
+    """True only when preferences are exactly 1..k with no gaps or duplicates."""
+    numeric_prefs = [pref for pref in preferences if isinstance(pref, int)]
+    if not numeric_prefs:
+        return False
+
+    expected = list(range(1, len(numeric_prefs) + 1))
+    return sorted(numeric_prefs) == expected
+
+
 
 def load_digit_runs(out_dir: str) -> List[dict]:
     """
@@ -206,10 +216,7 @@ def load_digit_runs(out_dir: str) -> List[dict]:
                 numbers_found += 1
                 prefs.append(digit)
 
-        # sequence_ok: preferences should be 1..k with no duplicates
-        # (simple check; you can make stricter if you want)
-        uniq = sorted(set([d for d in prefs if isinstance(d, int)]))
-        sequence_ok = (uniq == list(range(1, len(uniq) + 1))) if uniq else False
+        sequence_ok = is_valid_preference_sequence(prefs)
 
         records.append({
             "image": ballot_id,            # note: no extension; we stem-match later

@@ -13,9 +13,6 @@ DEFAULT_STAMP_WEIGHTS = STAMP_ROOT / "runs" / "train" / "yolo_stamp" / "weights"
 DEFAULT_DIGIT_MODEL = HWR_ROOT / "tf-cnn-model.keras"
 
 
-from remove_background import crop_ballot_paper
-
-
 def _run_checked(cmd: list[str], cwd: Path, env: Optional[dict] = None) -> subprocess.CompletedProcess:
     merged_env = os.environ.copy()
     if env:
@@ -56,7 +53,7 @@ def process_single_ballot(
     image_url: Optional[str] = None,
 ) -> dict:
     """
-    Run background removal + stamp detection + handwritten extraction + merge on one image.
+    Run stamp detection + handwritten extraction + merge on one image.
     Outputs are written under work_root so Lambda can safely use /tmp.
     """
     image = Path(image_path).resolve()
@@ -75,26 +72,13 @@ def process_single_ballot(
     stamp_out = (work_dir / "stamp_outputs").resolve()
     digit_out = (work_dir / "debug_ballot").resolve()
     logs_dir = (work_dir / "logs").resolve()
-    remove_bg_out = (work_dir / "remove_background").resolve()
-    remove_bg_debug = (work_dir / "debug_remove_background").resolve()
 
     shutil.rmtree(stamp_out, ignore_errors=True)
     shutil.rmtree(digit_out, ignore_errors=True)
-    shutil.rmtree(remove_bg_out, ignore_errors=True)
-    shutil.rmtree(remove_bg_debug, ignore_errors=True)
     stamp_out.mkdir(parents=True, exist_ok=True)
     digit_out.mkdir(parents=True, exist_ok=True)
     logs_dir.mkdir(parents=True, exist_ok=True)
-    remove_bg_out.mkdir(parents=True, exist_ok=True)
-    remove_bg_debug.mkdir(parents=True, exist_ok=True)
-
-    # 0) Background removal / ballot crop (must run first)
-    cropped_image = remove_bg_out / f"{image.stem}_ballot_crop.png"
-    crop_result = crop_ballot_paper(
-        input_path=str(image),
-        output_path=str(cropped_image),
-        debug_dir=str(remove_bg_debug / image.stem),
-    )
+    pipeline_input = image
 
     # 1) Stamp detection
     predict_cmd = [
@@ -104,7 +88,7 @@ def process_single_ballot(
         "--weights",
         str(weights),
         "--images",
-        str(cropped_image),
+        str(pipeline_input),
         "--out_dir",
         str(stamp_out),
     ]
@@ -119,7 +103,7 @@ def process_single_ballot(
         "-m",
         "ballot_reader.cli",
         "--input",
-        str(cropped_image),
+        str(pipeline_input),
         "--out",
         str(digit_out),
         "--model",
@@ -142,12 +126,7 @@ def process_single_ballot(
 
     return {
         "original_image": str(image),
-        "cropped_image": str(cropped_image),
-        "remove_background": {
-            "debug_dir": crop_result.debug_dir,
-            "bbox": list(crop_result.bbox),
-            "used_fallback": crop_result.used_fallback,
-        },
+        "pipeline_input": str(pipeline_input),
         "work_dir": str(work_dir),
         "yolo_log": str(stamp_out / "inference_manifest.json"),
         "digit_out": str(digit_out),

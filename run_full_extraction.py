@@ -7,7 +7,7 @@ from pathlib import Path
 import boto3
 
 
-parser = argparse.ArgumentParser(description="Run crop + stamp detection + handwritten detection, then merge logs")
+parser = argparse.ArgumentParser(description="Run stamp detection + handwritten detection, then merge logs")
 parser.add_argument("--weights", default="runs/train/yolo_stamp/weights/best.pt")
 parser.add_argument("--images", required=True, help="Path to image file or directory of images")
 parser.add_argument("--bucket", required=True, help="S3 bucket name to upload images to")
@@ -19,7 +19,7 @@ STAMP_ROOT = REPO_ROOT / "stamp-detection"
 HWR_ROOT = REPO_ROOT / "Handwritten-Digit-Recognition"
 
 
-from remove_background import VALID_EXTENSIONS, crop_ballot_paper
+VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
 
 
 def iter_images(path: Path):
@@ -85,35 +85,14 @@ def upload_images_to_s3(path: str, bucket: str, prefix: str) -> None:
         upload_one_file(path, bucket, key)
 
 
-def prepare_cropped_inputs(raw_input: Path) -> Path:
-    crop_root = REPO_ROOT / "runtime-test" / "remove-background" / "crops"
-    debug_root = REPO_ROOT / "runtime-test" / "remove-background" / "debug"
-
-    shutil.rmtree(crop_root, ignore_errors=True)
-    shutil.rmtree(debug_root, ignore_errors=True)
-    crop_root.mkdir(parents=True, exist_ok=True)
-    debug_root.mkdir(parents=True, exist_ok=True)
-
-    images = list(iter_images(raw_input))
-    if not images:
-        raise RuntimeError(f"No valid image files found in: {raw_input}")
-
-    for image in images:
-        out_path = crop_root / f"{image.stem}_ballot_crop.png"
-        dbg_path = debug_root / image.stem
-        crop_ballot_paper(str(image), str(out_path), str(dbg_path))
-
-    if raw_input.is_file():
-        return crop_root / f"{raw_input.stem}_ballot_crop.png"
-    return crop_root
-
-
 print("Uploading images to S3...")
 upload_images_to_s3(args.images, args.bucket, args.s3_prefix)
 print("Upload complete.")
 
-processed_input = prepare_cropped_inputs(Path(args.images).resolve())
-print(f"Prepared cropped input(s) at: {processed_input}")
+processed_input = Path(args.images).resolve()
+if not list(iter_images(processed_input)):
+    raise RuntimeError(f"No valid image files found in: {processed_input}")
+print(f"Using raw input(s) directly from: {processed_input}")
 
 weights_arg = args.weights
 if not os.path.isabs(weights_arg):

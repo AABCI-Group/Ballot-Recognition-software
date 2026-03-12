@@ -22,6 +22,7 @@ Reason: the Lambda image should be minimal and tuned for `/tmp` ephemeral execut
 3. Uses DynamoDB conditional write (`idempotency_key`) to dedupe retries/duplicates.
 4. Downloads object to `/tmp/ballot-runtime/.../input/<filename>`.
 5. Runs `runtime_pipeline.process_single_ballot(...)`:
+   - raw ballot image from S3 is used directly as pipeline input
    - stamp inference (`src.infer.predict`)
    - digit extraction (`ballot_reader.cli`)
    - merge + Supabase insert (`merge_ballot_logs.py`)
@@ -118,6 +119,9 @@ python runtime_pipeline.py \
   --work_root ./runtime-test \
   --yolo_device cpu \
   --image_url s3://example-bucket/raw-images/1000013245.jpg
+
+This runtime path now skips `remove_background` and feeds the original ballot image
+directly into stamp detection and handwritten extraction.
 ```
 
 ## Local Lambda Invocation (S3 event simulation)
@@ -166,4 +170,3 @@ Python 3.13 is not recommended for this dependency set.
 - Partition key: `idempotency_key` (String).
 - TTL attribute: `ttl` (Number, epoch seconds).
 - Optional GSI for operations dashboard by `status`.
-
