@@ -19,3 +19,5 @@ debug_ballot/*
 logs/*
 
 runtime-test/*
+.env
+.env.*
