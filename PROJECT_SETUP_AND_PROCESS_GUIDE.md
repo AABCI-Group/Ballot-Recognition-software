@@ -55,7 +55,7 @@ Cloud/runtime optional:
 ### 4.1 Clone and enter the repo
 
 ```powershell
-git clone <your-repo-url>
+git clone https://github.com/AABCI-Group/Ballot-Recognition-software.git
 cd ballot-stamp-verifier
 ```
 
