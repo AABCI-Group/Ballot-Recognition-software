@@ -8,7 +8,9 @@ stamp-detection/runs/
 stamp-detection/outputs/
 stamp-detection/data/
 stamp-detection/*.pt
+stamp-detection/real-ballots-to-print/images
 
+Handwritten-Digit-Recognition/debug_output
 Handwritten-Digit-Recognition/.ipynb_checkpoints/
 Handwritten-Digit-Recognition/cnn1.py
 Handwritten-Digit-Recognition/cnn2.py

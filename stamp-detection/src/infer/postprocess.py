@@ -18,6 +18,6 @@ VALID="VALID STAMP"; NONE="NO STAMP"; REVIEW="REVIEW REQUIRED"
 def decide(score: float, geo_ok: bool, feats: dict, bbox=None, th: Thresholds=Thresholds(0.6,0.35)) -> Decision:
     if score >= th.score_valid and geo_ok:
         return Decision(VALID, score, feats, bbox)
-    if score < th.score_review:
+    if score < th.score_review or not geo_ok:
         return Decision(NONE, score, feats, bbox)
     return Decision(REVIEW, score, feats, bbox)

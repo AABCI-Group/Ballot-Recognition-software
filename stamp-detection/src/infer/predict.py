@@ -16,7 +16,15 @@ args = ap.parse_args()
 
 cfg = yaml.safe_load(open(args.val_rules))
 th = Thresholds(cfg["score_valid"], cfg["score_review"])
-geo = GeoConfig(cfg["min_area_frac"], cfg["max_area_frac"], cfg["min_circularity"], cfg["min_ellipse_edge_pct"], cfg["min_template_ncc"])
+geo = GeoConfig(
+    cfg["min_area_frac"],
+    cfg["max_area_frac"],
+    cfg["min_circularity"],
+    cfg["min_ellipse_edge_pct"],
+    cfg["min_template_ncc"],
+    cfg.get("min_blob_count", 0),
+    cfg.get("min_blob_spread", 0.0),
+)
 
 template = cv2.imread(args.template) if args.template else None
 
@@ -53,29 +61,29 @@ for p in paths:
 
     res = model.predict(im, imgsz=1024, conf=0.1, iou=0.5, verbose=False, device=device)[0]
     H, W = im.shape[:2]
-    best_score = 0.0
-    best_bbox = None
-    feats = {}
-    geo_ok = False
+    best_raw = {"score": 0.0, "bbox": None, "feats": {}, "geo_ok": False}
+    best_geo = {"score": 0.0, "bbox": None, "feats": {}, "geo_ok": False}
     for b in res.boxes:
         score = float(b.conf.cpu().item())
         x0, y0, x1, y1 = map(int, b.xyxy.cpu().numpy().ravel())
         crop = im[max(0, y0):min(H, y1), max(0, x0):min(W, x1)]
         ok, f = passes_geometry(crop, im.shape, (x0, y0, x1, y1), geo, template)
 
-        if score > best_score:
-            best_score = score
-            best_bbox = (x0, y0, x1, y1)
-            feats = f
-            geo_ok = ok
-    print(p.name, "best_score:", best_score, "geo_ok:", geo_ok, "feats:", feats)
-    decision = decide(best_score, geo_ok, feats, best_bbox, th)
+        if score > best_raw["score"]:
+            best_raw = {"score": score, "bbox": (x0, y0, x1, y1), "feats": f, "geo_ok": ok}
+        if ok and score > best_geo["score"]:
+            best_geo = {"score": score, "bbox": (x0, y0, x1, y1), "feats": f, "geo_ok": ok}
+
+    best = best_geo if best_geo["bbox"] is not None else best_raw
+    print(p.name, "best_score:", best["score"], "geo_ok:", best["geo_ok"], "feats:", best["feats"])
+    decision = decide(best["score"], best["geo_ok"], best["feats"], best["bbox"], th)
 
     rec = {
         "image": p.as_posix(),
         "decision": decision.label,
         "score": decision.conf,
         "bbox": decision.bbox,
+        "geo_ok": best["geo_ok"],
         "features": decision.features,
         "skew_deg": skew,
     }

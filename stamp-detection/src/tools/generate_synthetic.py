@@ -67,6 +67,63 @@ def random_border_position(img_w, img_h, stamp_w, stamp_h, border_frac=0.2, max_
     # Fallback: if we somehow never hit the border zone, just return the last sample
     return x, y
 
+def random_position(img_w, img_h, stamp_w, stamp_h, placement="mixed"):
+    max_x = max(0, img_w - stamp_w)
+    max_y = max(0, img_h - stamp_h)
+    mode = placement
+    if placement == "mixed":
+        mode = random.choices(
+            ["border", "anywhere", "top", "right_column"],
+            weights=[0.35, 0.25, 0.25, 0.15],
+            k=1,
+        )[0]
+
+    if mode == "border":
+        return random_border_position(img_w, img_h, stamp_w, stamp_h, border_frac=0.24)
+    if mode == "top":
+        return random.randint(0, max_x), random.randint(0, max(0, int(img_h * 0.22) - stamp_h))
+    if mode == "right_column":
+        x0 = min(max_x, max(0, int(img_w * 0.70)))
+        return random.randint(x0, max_x), random.randint(0, max_y)
+    return random.randint(0, max_x), random.randint(0, max_y)
+
+def augment_blank(blank):
+    out = blank.copy()
+    if random.random() < 0.65:
+        out = cv2.convertScaleAbs(out, alpha=random.uniform(0.82, 1.18), beta=random.randint(-18, 18))
+    if random.random() < 0.35:
+        k = random.choice([3, 5])
+        out = cv2.GaussianBlur(out, (k, k), random.uniform(0.1, 0.8))
+    if random.random() < 0.25:
+        noise = np.random.normal(0, random.uniform(2, 8), out.shape).astype(np.int16)
+        out = np.clip(out.astype(np.int16) + noise, 0, 255).astype(np.uint8)
+    return out
+
+def add_pen_decoys(blank, count=None):
+    out = blank.copy()
+    h, w = out.shape[:2]
+    n = count if count is not None else random.randint(0, 5)
+    color_choices = [(20, 20, 20), (35, 25, 65), (55, 55, 55)]
+    for _ in range(n):
+        color = random.choice(color_choices)
+        thickness = random.randint(2, max(2, int(min(w, h) * 0.004)))
+        cx = random.randint(int(w * 0.55), max(int(w * 0.56), int(w * 0.95)))
+        cy = random.randint(int(h * 0.05), max(int(h * 0.06), int(h * 0.95)))
+        kind = random.choice(["digit", "stroke", "dot"])
+        if kind == "digit":
+            txt = random.choice(list("123456789"))
+            font_scale = random.uniform(0.7, 1.8) * (h / 1600.0)
+            cv2.putText(out, txt, (cx, cy), cv2.FONT_HERSHEY_SIMPLEX, font_scale, color, thickness, cv2.LINE_AA)
+        elif kind == "stroke":
+            pts = []
+            for _ in range(random.randint(2, 4)):
+                pts.append([cx + random.randint(-40, 40), cy + random.randint(-40, 40)])
+            cv2.polylines(out, [np.array(pts, dtype=np.int32)], False, color, thickness, cv2.LINE_AA)
+        else:
+            radius = random.randint(3, max(4, int(min(w, h) * 0.012)))
+            cv2.circle(out, (cx, cy), radius, color, -1, cv2.LINE_AA)
+    return out
+
 def random_transform_stamp(bgr, alpha, scale, angle):
     h0, w0 = alpha.shape
     new_w = max(1, int(w0 * scale))
@@ -149,24 +206,27 @@ def generate(args):
         if blank is None:
             continue
 
-        if random.random() < 0.2:
-            k = random.uniform(0.9, 1.1)
-            blank = cv2.convertScaleAbs(blank, alpha=k, beta=random.randint(-10, 10))
+        blank = augment_blank(blank)
+        if random.random() < args.decoy_ratio:
+            blank = add_pen_decoys(blank)
 
         h, w = blank.shape[:2]
-        target_frac = 0.05           # stamp height ≈ 8% of page height
+        is_negative = random.random() < args.negative_ratio
+        target_frac = random.uniform(args.min_stamp_frac, args.max_stamp_frac)
         orig_h = stamp_alpha.shape[0]
         scale = (h * target_frac) / orig_h
-        angle   = random.uniform(-45, 45)
-        opacity = random.uniform(0.3, 1.0)
+        angle   = random.uniform(args.min_angle, args.max_angle)
+        opacity = random.uniform(args.min_opacity, args.max_opacity)
 
 
-        sb, sa = random_transform_stamp(stamp_bgr, stamp_alpha, scale, angle)
-
-        hs, ws = sa.shape[:2]
-        x, y = random_border_position(w, h, ws, hs, border_frac=0.2)
-
-        stamped, mask = apply_stamp(blank.copy(), sb, sa, x, y, opacity)
+        if is_negative:
+            stamped = blank.copy()
+            mask = None
+        else:
+            sb, sa = random_transform_stamp(stamp_bgr, stamp_alpha, scale, angle)
+            hs, ws = sa.shape[:2]
+            x, y = random_position(w, h, ws, hs, args.placement)
+            stamped, mask = apply_stamp(blank.copy(), sb, sa, x, y, opacity)
 
         img_file = out_images / f"synth_{i:06d}.png"
         mask_file = out_masks  / f"synth_{i:06d}.png"
@@ -207,6 +267,15 @@ def parse_args():
     p.add_argument("--stamp_png", required=True)
     p.add_argument("--out_dir", required=True)
     p.add_argument("--count", type=int, default=500)
+    p.add_argument("--negative_ratio", type=float, default=0.30, help="Fraction of images with no stamp and empty YOLO labels.")
+    p.add_argument("--decoy_ratio", type=float, default=0.70, help="Fraction of images receiving non-stamp pen/noise marks.")
+    p.add_argument("--placement", choices=["mixed", "border", "top", "right_column", "anywhere"], default="mixed")
+    p.add_argument("--min_stamp_frac", type=float, default=0.030, help="Minimum stamp height as a fraction of page height.")
+    p.add_argument("--max_stamp_frac", type=float, default=0.070, help="Maximum stamp height as a fraction of page height.")
+    p.add_argument("--min_angle", type=float, default=-35.0)
+    p.add_argument("--max_angle", type=float, default=35.0)
+    p.add_argument("--min_opacity", type=float, default=0.22)
+    p.add_argument("--max_opacity", type=float, default=0.95)
     return p.parse_args()
 
 if __name__ == "__main__":

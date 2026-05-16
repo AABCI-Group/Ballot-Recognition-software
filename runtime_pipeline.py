@@ -1,9 +1,14 @@
-﻿import os
+import json
+import os
+import platform
 import shutil
 import subprocess
 import sys
+from importlib import metadata
 from pathlib import Path
 from typing import Optional
+
+from image_parity import local_file_diagnostics, sha256_file
 
 
 REPO_ROOT = Path(__file__).resolve().parent
@@ -41,6 +46,90 @@ def fetch_expected_rows() -> Optional[int]:
     except Exception as exc:
         print(f"[WARN] Could not fetch candidate count from Supabase: {exc}")
         return None
+
+
+def _load_json(path: Path) -> Optional[object]:
+    if not path.exists():
+        return None
+    with path.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _safe_version(package: str) -> Optional[str]:
+    try:
+        return metadata.version(package)
+    except metadata.PackageNotFoundError:
+        return None
+
+
+def _runtime_diagnostics(image: Path, weights: Path, model: Path) -> dict:
+    return {
+        "input_image": local_file_diagnostics(image),
+        "stamp_weights": {
+            "path": str(weights),
+            "bytes": weights.stat().st_size,
+            "sha256": sha256_file(weights),
+        },
+        "digit_model": {
+            "path": str(model),
+            "bytes": model.stat().st_size,
+            "sha256": sha256_file(model),
+        },
+        "runtime_environment": {
+            "python_executable": sys.executable,
+            "platform": platform.platform(),
+            "machine": platform.machine(),
+        },
+        "package_versions": {
+            "python": sys.version.split()[0],
+            "opencv_python_headless": _safe_version("opencv-python-headless"),
+            "opencv_python": _safe_version("opencv-python"),
+            "ultralytics": _safe_version("ultralytics"),
+            "torch": _safe_version("torch"),
+            "torchvision": _safe_version("torchvision"),
+            "tensorflow_cpu": _safe_version("tensorflow-cpu"),
+            "tensorflow": _safe_version("tensorflow"),
+            "numpy": _safe_version("numpy"),
+        },
+    }
+
+
+def _build_debug_summary(yolo_log: Path, merged_json: Path, image_url: Optional[str]) -> dict:
+    yolo_data = _load_json(yolo_log) or []
+    merged_data = _load_json(merged_json) or []
+
+    yolo_rec = yolo_data[0] if yolo_data else {}
+    merged_rec = merged_data[0] if merged_data else {}
+    stamp = merged_rec.get("stamp") or {}
+    digits = merged_rec.get("digits") or {}
+
+    preferences = []
+    for result in digits.get("results", []):
+        digit = result.get("digit")
+        row = result.get("row")
+        if isinstance(digit, int) and isinstance(row, int):
+            preferences.append({"row": row, "digit": digit})
+
+    stamp_label = stamp.get("stamp_label") or yolo_rec.get("decision")
+    sequence_ok = bool(digits.get("sequence_ok", False))
+    ballot_state = "Valid" if stamp_label == "VALID STAMP" and sequence_ok else "Doubtful"
+
+    return {
+        "image_name": Path(str(merged_rec.get("image") or yolo_rec.get("image") or "")).name,
+        "image_url": Path(image_url).name if image_url else None,
+        "stamp_decision": {
+            "label": stamp_label,
+            "score": stamp.get("score", yolo_rec.get("score")),
+            "bbox": yolo_rec.get("bbox"),
+            "features": yolo_rec.get("features"),
+        },
+        "digit_summary": {
+            "sequence_ok": digits.get("sequence_ok"),
+            "numbers_found": digits.get("numbers_found"),
+            "preferences": preferences,
+        },
+        "derived_ballot_state": ballot_state,
+    }
 
 
 def process_single_ballot(
@@ -94,7 +183,7 @@ def process_single_ballot(
     ]
     if yolo_device:
         predict_cmd.extend(["--device", yolo_device])
-    _run_checked(predict_cmd, cwd=STAMP_ROOT)
+    predict_proc = _run_checked(predict_cmd, cwd=STAMP_ROOT)
 
     # 2) Handwritten extraction
     expected_rows = fetch_expected_rows()
@@ -111,14 +200,17 @@ def process_single_ballot(
     ]
     if expected_rows is not None:
         hwr_cmd.extend(["--expected", str(expected_rows)])
-    _run_checked(hwr_cmd, cwd=HWR_ROOT)
+    hwr_proc = _run_checked(hwr_cmd, cwd=HWR_ROOT)
 
     # 3) Merge + Supabase insert
+    yolo_log = stamp_out / "inference_manifest.json"
+    merged_json = logs_dir / "ballots_merged.json"
+    merged_csv = logs_dir / "ballots_merged.csv"
     merge_env = {
-        "YOLO_LOG": str(stamp_out / "inference_manifest.json"),
+        "YOLO_LOG": str(yolo_log),
         "DIGIT_OUT_DIR": str(digit_out),
-        "OUTPUT_JSON": str(logs_dir / "ballots_merged.json"),
-        "OUTPUT_CSV": str(logs_dir / "ballots_merged.csv"),
+        "OUTPUT_JSON": str(merged_json),
+        "OUTPUT_CSV": str(merged_csv),
     }
     if image_url:
         merge_env["MERGE_IMAGE_URL"] = image_url
@@ -128,11 +220,18 @@ def process_single_ballot(
         "original_image": str(image),
         "pipeline_input": str(pipeline_input),
         "work_dir": str(work_dir),
-        "yolo_log": str(stamp_out / "inference_manifest.json"),
+        "yolo_log": str(yolo_log),
         "digit_out": str(digit_out),
-        "merged_json": str(logs_dir / "ballots_merged.json"),
-        "merged_csv": str(logs_dir / "ballots_merged.csv"),
+        "merged_json": str(merged_json),
+        "merged_csv": str(merged_csv),
+        "diagnostics": _runtime_diagnostics(image, weights, model),
+        "debug_summary": _build_debug_summary(yolo_log, merged_json, image_url),
+        "predict_stdout": predict_proc.stdout,
+        "predict_stderr": predict_proc.stderr,
+        "hwr_stdout": hwr_proc.stdout,
+        "hwr_stderr": hwr_proc.stderr,
         "merge_stdout": merge_proc.stdout,
+        "merge_stderr": merge_proc.stderr,
     }
 
 

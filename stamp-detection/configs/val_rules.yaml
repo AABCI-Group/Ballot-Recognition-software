@@ -5,11 +5,13 @@
 # min_circularity: 0.35
 # min_ellipse_edge_pct: 0.20
 # min_template_ncc: 0.35
-score_valid: 0.50      # slightly easier to be "VALID"
-score_review: 0.20     # funnel more borderline cases into REVIEW, not NO STAMP
+score_valid: 0.38      # faint/partial dot stamps in samples often score around 0.4
+score_review: 0.18     # keep borderline geometric matches visible for review
 min_area_frac: 0.0001  # allow slightly smaller boxes
 max_area_frac: 0.30    # allow slightly larger boxes
 
-min_circularity: 0.10        # accept less round shapes
-min_ellipse_edge_pct: 0.05   # only require a bit of ellipse alignment
-min_template_ncc: 0.10 
+min_circularity: 0.07        # partial/dotted stamps can be elongated after thresholding
+min_ellipse_edge_pct: 0.00   # dot clusters are often separated, so ellipse fit is secondary
+min_template_ncc: 0.10
+min_blob_count: 0            # do not require visible dots; faint/partial valid stamps often merge into one contour
+min_blob_spread: 0.0         # blob spread is too brittle for partial stamps

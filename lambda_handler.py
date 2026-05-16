@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Optional
 import boto3
 from botocore.exceptions import ClientError
 
+from image_parity import local_file_diagnostics, summarize_s3_head, to_pretty_json
 from runtime_pipeline import process_single_ballot
 
 
@@ -171,6 +172,39 @@ def _set_status(token: str, status: str, details: Optional[Dict[str, Any]] = Non
     )
 
 
+def _head_s3_object(bucket: str, key: str, version_id: Optional[str]) -> Dict[str, Any]:
+    params: Dict[str, Any] = {"Bucket": bucket, "Key": key}
+    if version_id:
+        params["VersionId"] = version_id
+    response = s3.head_object(**params)
+    return summarize_s3_head(response, bucket=bucket, key=key, version_id=version_id)
+
+
+def _download_s3_object(bucket: str, key: str, version_id: Optional[str], destination: Path) -> None:
+    if version_id:
+        s3.download_file(bucket, key, str(destination), ExtraArgs={"VersionId": version_id})
+        return
+    s3.download_file(bucket, key, str(destination))
+
+
+def _build_input_diagnostics(bucket: str, key: str, version_id: Optional[str], local_image: Path) -> Dict[str, Any]:
+    s3_object = _head_s3_object(bucket, key, version_id)
+    downloaded_file = local_file_diagnostics(local_image)
+    size_matches = (
+        s3_object.get("content_length") == downloaded_file.get("bytes")
+        if s3_object.get("content_length") is not None
+        else None
+    )
+    diagnostics = {
+        "s3_object": s3_object,
+        "downloaded_file": downloaded_file,
+        "size_matches_head": size_matches,
+    }
+    print("[lambda-input-diagnostics]")
+    print(to_pretty_json(diagnostics))
+    return diagnostics
+
+
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     _require_env()
     records = event.get("Records") or []
@@ -206,7 +240,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             input_dir = Path(tmp_dir) / "input"
             input_dir.mkdir(parents=True, exist_ok=True)
             local_image = input_dir / Path(key).name
-            s3.download_file(bucket, key, str(local_image))
+            _download_s3_object(bucket, key, version_id, local_image)
+            input_diagnostics = _build_input_diagnostics(bucket, key, version_id, local_image)
 
             image_url = f"s3://{bucket}/{key}"
             pipeline_result = process_single_ballot(
@@ -218,14 +253,18 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 image_url=image_url,
             )
 
-            _set_status(token, "SUCCEEDED", {"pipeline": pipeline_result})
+            _set_status(token, "SUCCEEDED", {"input_diagnostics": input_diagnostics, "pipeline": pipeline_result})
             return {
                 "status": "ok",
                 "bucket": bucket,
                 "key": key,
                 "idempotency_key": token,
+                "input_diagnostics": input_diagnostics,
                 "result": pipeline_result,
             }
     except Exception as exc:
-        _set_status(token, "FAILED", {"error": str(exc)})
+        failure_details: Dict[str, Any] = {"error": str(exc), "bucket": bucket, "key": key}
+        print("[lambda-input-failure]")
+        print(to_pretty_json(failure_details))
+        _set_status(token, "FAILED", failure_details)
         raise

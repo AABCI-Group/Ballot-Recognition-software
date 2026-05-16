@@ -1,0 +1,7 @@
+path: .
+train: data/lists/train_mixed.txt
+val: data/lists/val_real.txt
+test: data/lists/test_real.txt
+
+names:
+  0: stamp

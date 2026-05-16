@@ -1,0 +1,13 @@
+path: .
+train:
+  - data/yolo_split_stamp1/train/images
+  - data/yolo_split_stamp2/train/images
+val:
+  - data/yolo_split_stamp1/val/images
+  - data/yolo_split_stamp2/val/images
+test:
+  - data/yolo_split_stamp1/test/images
+  - data/yolo_split_stamp2/test/images
+
+names:
+  0: stamp

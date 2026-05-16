@@ -33,12 +33,19 @@ class DebugWriter:
         """Save a decision JSON to a standardized path."""
         full_path = os.path.join(self.out_dir, *path_parts, "decision.json")
         write_json(full_path, decision)
+
+    def save_text(self, text: str, path_parts: List[str], name: str) -> None:
+        """Save a text artifact to a standardized path."""
+        full_path = os.path.join(self.out_dir, *path_parts, name)
+        safe_mkdir(os.path.dirname(full_path))
+        with open(full_path, "w", encoding="utf-8") as f:
+            f.write(text)
    
    
     def draw_overlay(
         self,
         img: np.ndarray,
-        boxes: List[Tuple[int, int, int, int]],
+        boxes: List[Optional[Tuple[int, int, int, int]]],
         rows: List[Tuple[int, int]],
         name: str,
         assigned: Optional[List[Optional[Tuple[int, int, int, int]]]] = None,
@@ -80,7 +87,19 @@ class DebugWriter:
             return None
 
         # --- draw boxes + center points + labels
-        for bidx, (x, y, w, h) in enumerate(boxes, start=1):
+        for bidx, box in enumerate(boxes, start=1):
+            if box is None:
+                if bidx - 1 < len(rows):
+                    y1, y2 = rows[bidx - 1]
+                    cy = (y1 + y2) // 2
+                    cv2.putText(
+                        vis, f"B{bidx}=MISSING",
+                        (label_x_right, cy),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 165, 255), 2, cv2.LINE_AA
+                    )
+                continue
+
+            x, y, w, h = box
             cy = y + h / 2.0
             cx = x + w / 2.0
 

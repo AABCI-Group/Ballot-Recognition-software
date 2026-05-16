@@ -22,6 +22,8 @@ RUN python -m pip install --upgrade pip && \
 
 COPY merge_ballot_logs.py /app/merge_ballot_logs.py
 COPY runtime_pipeline.py /app/runtime_pipeline.py
+COPY image_parity.py /app/image_parity.py
+COPY compare_image_parity.py /app/compare_image_parity.py
 COPY run_full_extraction.py /app/run_full_extraction.py
 COPY upload_server.py /app/upload_server.py
 COPY lambda_handler.py /app/lambda_handler.py

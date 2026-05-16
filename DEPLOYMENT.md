@@ -21,6 +21,12 @@ Reason: the Lambda image should be minimal and tuned for `/tmp` ephemeral execut
 2. Chooses the newest record when a batch contains multiple records.
 3. Uses DynamoDB conditional write (`idempotency_key`) to dedupe retries/duplicates.
 4. Downloads object to `/tmp/ballot-runtime/.../input/<filename>`.
+   - Lambda now records `input_diagnostics` with:
+     - S3 bucket/key/version id
+     - `head_object` content length, content type, content disposition, content encoding, etag, and custom metadata
+     - downloaded file byte size
+     - downloaded file SHA-256
+     - decoded image width/height/channels
 5. Runs `runtime_pipeline.process_single_ballot(...)`:
    - raw ballot image from S3 is used directly as pipeline input
    - stamp inference (`src.infer.predict`)
@@ -138,6 +144,46 @@ curl -s -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations"
   -d @events/s3_object_created.json
 ```
 
+The invocation response now includes `input_diagnostics`, and the same JSON is printed to container logs under a `[lambda-input-diagnostics]` marker.
+
+## Local Byte-Parity Checks
+
+Use the same pinned Lambda runtime image to compare a local file and an S3 object:
+
+```powershell
+docker build -f Dockerfile.lambda -t ballot-stamp-verifier:lambda .
+
+docker run --rm `
+  --env-file .env `
+  -e AWS_REGION=us-east-1 `
+  -e AWS_ACCESS_KEY_ID=$env:AWS_ACCESS_KEY_ID `
+  -e AWS_SECRET_ACCESS_KEY=$env:AWS_SECRET_ACCESS_KEY `
+  -e AWS_SESSION_TOKEN=$env:AWS_SESSION_TOKEN `
+  -v ${PWD}:/workspace `
+  ballot-stamp-verifier:lambda `
+  python /var/task/compare_image_parity.py `
+    --local-file /workspace/uploads/IMG20260312213954.jpg `
+    --bucket your-bucket `
+    --key raw-images/IMG20260312213954.jpg
+```
+
+If you only want to hash the S3 object exactly as Lambda downloads it:
+
+```powershell
+docker run --rm `
+  --env-file .env `
+  -e AWS_REGION=us-east-1 `
+  -e AWS_ACCESS_KEY_ID=$env:AWS_ACCESS_KEY_ID `
+  -e AWS_SECRET_ACCESS_KEY=$env:AWS_SECRET_ACCESS_KEY `
+  -e AWS_SESSION_TOKEN=$env:AWS_SESSION_TOKEN `
+  ballot-stamp-verifier:lambda `
+  python /var/task/compare_image_parity.py `
+    --bucket your-bucket `
+    --key raw-images/IMG20260312213954.jpg
+```
+
+This uses the same `requirements-runtime.txt` dependency set and base image as Lambda, which helps eliminate host-environment drift when reproducing byte and decode behavior locally.
+
 ## Failure and Retry Behavior
 
 - Lambda raises on failures so AWS retry/DLQ behavior applies.
@@ -148,6 +194,8 @@ curl -s -XPOST "http://localhost:9000/2015-03-31/functions/function/invocations"
 
 Use Python **3.11** for mixed TensorFlow + PyTorch runtime stability.
 Python 3.13 is not recommended for this dependency set.
+
+To minimize dependency drift, run local parity probes through `Dockerfile.lambda` instead of a host Python environment. The runtime pipeline already reports package versions, Python executable, and platform in its diagnostics payload.
 
 ## AWS Lambda Configuration Recommendations
 

@@ -6,7 +6,7 @@ venv:
 	pip install -r requirements.txt
 
 synth:
-	python src/tools/generate_synthetic.py --blanks_dir data/blanks --stamp_png assets/stamp.png --out_dir data/synth --count 4000
+	python src/tools/generate_synthetic.py --blanks_dir data/blanks --stamp_png assets/Stamp.png --out_dir data/synth --count 4000 --negative_ratio 0.30 --decoy_ratio 0.70 --placement mixed
 
 split:
 	python src/tools/split_yolo.py --images data/synth/images --labels_det data/synth/labels_det --out_dir data/yolo_split

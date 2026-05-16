@@ -88,6 +88,9 @@ class BallotConfig:
     vote_box_max_area_frac: float = 0.045
     # approxPolyDP epsilon relative to contour perimeter.
     vote_box_poly_eps_frac: float = 0.020
+    # Vote boxes should extend into the far-right column; portraits/logos can
+    # form square-ish contours inside the wider right-side ROI but end earlier.
+    vote_box_min_right_edge_frac: float = 0.84
     
     # --- PATHS ---
     model_path: str = "Handwritten-Digit-Recognition/tf-cnn-model.keras"

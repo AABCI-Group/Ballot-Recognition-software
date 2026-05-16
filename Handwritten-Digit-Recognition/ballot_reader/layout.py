@@ -596,6 +596,41 @@ def refine_rows_with_separators(
             out.append((int(y1), int(y1 + min_h)))
     return out
 
+
+def _filter_vote_box_column(
+    boxes: List[Tuple[int, int, int, int]],
+    img_width: int,
+    config: BallotConfig,
+) -> List[Tuple[int, int, int, int]]:
+    """
+    Keep rectangles that align with the far-right printed vote-box column.
+
+    Portraits and party logos can produce square-ish contours inside the broad
+    right-side ROI, but their right edge ends well before the vote-box column.
+    """
+    if not boxes:
+        return boxes
+
+    min_right = float(getattr(config, "vote_box_min_right_edge_frac", 0.84)) * img_width
+    edge_filtered = [b for b in boxes if (b[0] + b[2]) >= min_right]
+    if edge_filtered:
+        boxes = edge_filtered
+
+    if len(boxes) >= 4:
+        widths = np.array([b[2] for b in boxes], dtype=np.float32)
+        med_w = float(np.median(widths)) if len(widths) else 0.0
+        if med_w > 0:
+            right_edges = np.array([b[0] + b[2] for b in boxes], dtype=np.float32)
+            right_anchor = float(np.median(np.sort(right_edges)[len(right_edges) // 2:]))
+            tolerance = max(0.035 * img_width, 0.65 * med_w)
+            filtered = [b for b in boxes if (b[0] + b[2]) >= right_anchor - tolerance]
+            if len(filtered) >= max(3, int(0.55 * len(boxes))):
+                boxes = filtered
+
+    boxes.sort(key=lambda b: b[1])
+    return boxes
+
+
 def detect_vote_boxes(img_bgr: np.ndarray, config: BallotConfig) -> List[Tuple[int, int, int, int]]:
     """Detect vote boxes (box-first).
 
@@ -710,6 +745,9 @@ def detect_vote_boxes(img_bgr: np.ndarray, config: BallotConfig) -> List[Tuple[i
         boxes = [b for b in boxes if b[0] >= int(config.min_x_frac * W)]
         boxes.sort(key=lambda b: b[1])
 
+    if boxes:
+        boxes = _filter_vote_box_column(boxes, W, config)
+
     # --- Conservative fallback: legacy whole-image contour detector.
     # Kept for backwards compatibility on scans where ROI detection fails.
     if not boxes:
@@ -744,7 +782,7 @@ def detect_vote_boxes(img_bgr: np.ndarray, config: BallotConfig) -> List[Tuple[i
             ):
                 cand.append((int(x), int(y), int(w), int(h)))
         cand.sort(key=lambda b: b[1])
-        boxes = cand
+        boxes = _filter_vote_box_column(cand, W, config)
 
     # If expected count is known, keep the most plausible K boxes.
     if boxes and config.expected_boxes is not None and len(boxes) > int(config.expected_boxes):
@@ -1199,4 +1237,4 @@ def detect_vote_boxes_legacy(img_bgr: np.ndarray, config: BallotConfig) -> List[
             cand.append((int(x), int(y), int(w), int(h)))
 
     cand.sort(key=lambda b: b[1])
-    return cand
+    return _filter_vote_box_column(cand, W, config)
